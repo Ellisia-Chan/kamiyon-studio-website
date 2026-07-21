@@ -298,6 +298,8 @@ For internal team and agent development:
 3. Write tests first (TDD); target 80%+ coverage.
 4. Update `context/progress-tracker.md` after each phase; archive completed milestones under `context/completed/`.
 
+## Repo Activity
+![Alt](https://repobeats.axiom.co/api/embed/8301267181582ef80607a5531e63e4250c7f074f.svg "Repobeats analytics image")
 ---
 
 **Last Updated:** 2026-07-11  
