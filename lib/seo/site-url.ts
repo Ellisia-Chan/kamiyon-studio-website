@@ -32,23 +32,23 @@ export function isProductionCanonicalSiteUrl(siteUrl: string): boolean {
 
 /**
  * True only when both the canonical production origin and a production
- * deployment are confirmed. Preview/development Vercel envs are never
- * crawlable — even if they inherit Production `NEXT_PUBLIC_SITE_URL`.
- * When `vercelEnv` is unset (local), the SITE_URL check alone applies.
+ * deployment are confirmed. Staging/preview/development `APP_ENV` values are
+ * never crawlable — even if they inherit Production `NEXT_PUBLIC_SITE_URL`.
+ * When `appEnv` is unset (local), the SITE_URL check alone applies.
  */
 export function isCrawlableProduction(
   siteUrl: string,
-  vercelEnv?: string | null
+  appEnv?: string | null
 ): boolean {
   if (!isProductionCanonicalSiteUrl(siteUrl)) {
     return false;
   }
 
   return (
-    vercelEnv === undefined ||
-    vercelEnv === null ||
-    vercelEnv === "" ||
-    vercelEnv === "production"
+    appEnv === undefined ||
+    appEnv === null ||
+    appEnv === "" ||
+    appEnv === "production"
   );
 }
 

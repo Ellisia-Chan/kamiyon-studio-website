@@ -2,7 +2,9 @@
 
 ## Theme
 
-Kamiyon Studio's website is a **warm, premium marketing site** — not a dark technical workspace. The visual language balances playful creativity with professional craftsmanship: bright Warm Ivory backgrounds, Charcoal typography, Sakura Pink accents, and Deep Indigo for depth in hero sections.
+Kamiyon Studio's website is a **warm, premium marketing site** — not a dark technical workspace. The visual language balances playful creativity with professional craftsmanship: bright White (`#F8F8F8`) backgrounds, Black (`#201013`) typography, Primary pink (`#FF7998`) accents, and Secondary gold (`#E9C080`) used sparingly.
+
+> **Locked website tokens:** see [`WEBSITE-ESSENTIAL-CONTEXT.md`](./WEBSITE-ESSENTIAL-CONTEXT.md) §8 — that file wins on conflicts.
 
 Visitors should feel: professional, creative, approachable, trustworthy, innovative, educational.
 
@@ -18,48 +20,41 @@ Visitors should feel: professional, creative, approachable, trustworthy, innovat
 
 Use CSS custom properties for all colors. Components must reference tokens — no ad-hoc hex in components.
 
-### Brand palette
+### Brand palette (locked 2026-07-21)
 
 | Role | CSS Variable | Value | Usage |
 | --- | --- | --- | --- |
-| Sakura Pink | `--color-sakura` | `#f97695` | Primary brand, CTAs, highlights, mascot accents |
-| Warm Ivory | `--color-ivory` | `#f8f8f8` | Primary light background (~55% visual weight) |
-| Charcoal | `--color-charcoal` | `#201013` | Body text, navigation (~20%) |
-| Deep Indigo | `--color-indigo` | TBD | Hero sections, headers, depth (~8%) |
-| Soft Gold | `--color-gold` | `#e9c080` | Sparingly: achievements, premium accents (~2%) |
+| Primary | `--color-primary` / `--color-sakura` | `#FF7998` | Brand, CTAs, highlights, fills |
+| Secondary | `--color-secondary` / `--color-gold` | `#E9C080` | Sparse premium accents |
+| Black | `--color-black` / `--color-charcoal` | `#201013` | Body text, navigation |
+| White | `--color-white` / `--color-ivory` | `#F8F8F8` | Primary page background |
 
-**Confirmed hex:** Sakura Pink `#f97695` extracted from [`docs/assets/svg.svg`](../docs/assets/svg.svg) logo paths. Warm Ivory `#f8f8f8`, Charcoal `#201013`, and Soft Gold `#e9c080` extracted (Phase 9) from the labeled color swatches in [`docs/assets/brand-kit.png`](../docs/assets/brand-kit.png).
-
-**Deep Indigo still TBD:** `brand-kit.png`'s swatch grid contains exactly 4 chips — the 3 above plus one pink chip (`#FF7998`, a near-duplicate of the confirmed Sakura Pink, not a new color). None of the 4 reads as a blue-violet "indigo" hue; the darkest chip (`#201013`) is a near-neutral dark tone (R>G>B, no blue bias) and was assigned to Charcoal instead, matching its documented role (body text) and its use as a background behind light/gold wordmark lockups in the kit. Do not invent a Deep Indigo hex — extract it from a future canon update.
-
-**Accessibility tint:** `--color-sakura-ink` (`#c23a5e`) is a WCAG AA–accessible darkened tint of Sakura Pink (same hue/saturation, ~5.2:1 contrast on white/ivory vs. the raw brand hex's ~2.6:1). It is a derived UI utility, not a new brand color — use it for any Sakura-colored text/icon/focus-ring foreground on light backgrounds; reserve raw `--color-sakura` for fills/backgrounds and pair those with `--text-on-accent` (maps to Charcoal) for legible foreground text.
+**Accessibility tint:** `--color-primary-ink` / `--color-sakura-ink` — darkened primary for text/icons on light backgrounds (raw `#FF7998` fails AA as text on white). Derived UI utility, not a fifth brand color. Pair primary **fills** with `--text-on-accent` → `#201013`.
 
 ### Semantic UI tokens (map to brand palette)
 
 | Role | CSS Variable | Maps to |
 | --- | --- | --- |
-| Page background | `--bg-base` | `--color-ivory` |
-| Surface / card | `--bg-surface` | white or slightly elevated ivory |
-| Primary text | `--text-primary` | `--color-charcoal` |
-| Muted text | `--text-muted` | charcoal at reduced opacity |
-| Primary accent | `--accent-primary` | `--color-sakura` |
-| Accent dark | `--accent-dark` | `--color-indigo` |
-| Border | `--border-default` | charcoal ~10–15% opacity |
-| Premium highlight | `--accent-premium` | `--color-gold` |
-| Text/icon on accent fill | `--text-on-accent` | `--color-charcoal` (dark foreground for content placed on top of `--accent-primary`) |
+| Page background | `--bg-base` | `--color-white` |
+| Surface / card | `--bg-surface` | slightly elevated white |
+| Primary text | `--text-primary` | `--color-black` |
+| Muted text | `--text-muted` | black at reduced opacity |
+| Primary accent | `--accent-primary` | `--color-primary` |
+| Border | `--border-default` | black ~10–15% opacity |
+| Premium highlight | `--accent-premium` | `--color-secondary` |
+| Text/icon on accent fill | `--text-on-accent` | `--color-black` |
 
 ### Color hierarchy (emphasis order)
 
-1. Sakura Pink → 2. Deep Indigo → 3. Charcoal → 4. Warm Ivory → 5. Soft Gold
+1. Primary `#FF7998` → 2. Black `#201013` → 3. White `#F8F8F8` → 4. Secondary `#E9C080`
 
-> **Source:** [`docs/design-system/color-palette.md`](../docs/design-system/color-palette.md)
+> **Source of truth for website:** [`WEBSITE-ESSENTIAL-CONTEXT.md`](./WEBSITE-ESSENTIAL-CONTEXT.md) §8. Canon `docs/design-system/color-palette.md` may still mention Deep Indigo — ignore for this site unless re-locked.
 
 ### Accessibility
 
 - Maintain sufficient contrast for all text/background pairs (WCAG AA minimum).
 - Never use color as the only indicator of state or meaning.
-- Test Sakura Pink on ivory and indigo backgrounds.
-- **Phase 9 finding:** raw Sakura Pink (`#f97695`) is ~2.6:1 against Warm Ivory/white — fails AA for text (4.5:1) and non-text UI like focus rings/icons (3:1). Site now uses `--color-sakura-ink` for that foreground role (see Brand palette above) and `--text-on-accent` for content placed on Sakura fills. Re-verify once Deep Indigo's hex is confirmed — that pairing is still untested.
+- Raw primary `#FF7998` is ~2.6:1 on white — use `--color-primary-ink` for text/icons/focus rings; use `--text-on-accent` on primary fills.
 
 ---
 
@@ -67,26 +62,23 @@ Use CSS custom properties for all colors. Components must reference tokens — n
 
 | Role | Font | CSS Variable | Usage |
 | --- | --- | --- | --- |
-| UI / body | Poppins | `--font-sans` | Navigation, buttons, body copy, UI labels |
-| Marketing headlines | Montserrat | `--font-display` | Section headings, page titles, marketing emphasis |
-| Decorative hero | Beaufort for LoL | `--font-brand` | Rare: major hero headlines, campaigns only — never body text |
+| Display / UI (primary) | **Geologica** | `--font-display` / `--font-sans` | Navigation, buttons, headings, UI labels |
+| Body / supporting (secondary) | **Montserrat** | `--font-body` | Body copy, captions, supporting text |
 
-Load via `next/font/google` (Poppins, Montserrat) or self-hosted equivalents. Beaufort requires license check before production use.
+Load via `next/font/google` with `display: swap`. **Do not use** Beaufort or Poppins in production.
 
-> **Source:** [`docs/branding/visual-identity.md`](../docs/branding/visual-identity.md)
-
-**Note:** [`docs/design-system/typography.md`](../docs/design-system/typography.md) is a duplicate of color-palette.md in the current canon — use visual-identity.md for font rules.
+> **Source of truth:** [`WEBSITE-ESSENTIAL-CONTEXT.md`](./WEBSITE-ESSENTIAL-CONTEXT.md) §8 (wins over older visual-identity font lists).
 
 ### Type scale (marketing site)
 
 | Element | Font | Weight guidance |
 | --- | --- | --- |
-| Page title (h1) | Montserrat | 700 |
-| Section title (h2) | Montserrat | 600–700 |
-| Subsection (h3) | Montserrat or Poppins | 600 |
-| Body | Poppins | 400 |
-| Small / caption | Poppins | 400, muted color |
-| Button | Poppins | 500–600 |
+| Page title (h1) | Geologica | 600–700 |
+| Section title (h2) | Geologica | 600–700 |
+| Subsection (h3) | Geologica | 600 |
+| Body | Montserrat | 400 |
+| Small / caption | Montserrat | 400, muted color |
+| Button / nav | Geologica | 500–600 |
 
 ---
 
@@ -209,10 +201,8 @@ Animations should communicate delight, not distraction:
 | Element | Pattern | Component |
 | --- | --- | --- |
 | Section / page headings (`h1`–`h2`) | Word pull-up stagger on scroll into view | `components/ui/WordPullUp` |
-| Body copy, eyebrows, supporting text | Fade + slight rise on scroll; soft enter blur + velocity blur while scrolling past (desktop / fine pointer) | `AnimatedSection` / `useFadeIn` |
+| Body copy, eyebrows, supporting text | Fade + slight rise on scroll | `AnimatedSection` / `useFadeIn` |
 | Full-bleed opening hero brand | Character split (GSAP) — special case | `components/ui/SplitText` in `HeroOpening` |
-
-**Motion blur:** `useFadeIn` / `useReveal` / `useStagger` default `motionBlur: true`. Enter from ~8px blur → sharp; while the element occupies the viewport, scroll velocity maps to ≤6px blur (clears when idle or off-screen). Skipped under `prefers-reduced-motion` and coarse pointers. Opt out with `motionBlur={false}` on `AnimatedSection` or the hook options.
 
 Do not wrap an entire section in `AnimatedSection` when the heading should pull up independently — animate the heading with `WordPullUp` and fade the remaining copy/content separately.
 

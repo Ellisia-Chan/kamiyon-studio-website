@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export type AccordionItem = {
+type AccordionItem = {
   question: string;
   answer: string;
 };

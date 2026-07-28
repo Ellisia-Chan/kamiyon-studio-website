@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import type { CaseStudy } from "@/lib/cms/types";
+import { CONTACT_CTA } from "@/lib/config/navigation";
 
 type ProjectSidebarProps = {
   caseStudy: CaseStudy;
@@ -49,7 +50,7 @@ export function ProjectSidebar({ caseStudy }: ProjectSidebarProps) {
         ) : null}
       </dl>
 
-      <Button href="/contact" variant="primary" className="mt-6 w-full">
+      <Button href={CONTACT_CTA.href} variant="primary" className="mt-6 w-full">
         Discuss a similar project
       </Button>
     </aside>

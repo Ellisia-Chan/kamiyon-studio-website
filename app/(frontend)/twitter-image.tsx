@@ -1,7 +1,6 @@
 import { ogImageContentType, ogImageSize, renderDefaultOgImage } from "@/lib/seo/og-image";
 
-export const runtime = "edge";
-
+/** Node runtime — see opengraph-image.tsx (OpenNext + next/og compatibility). */
 export const size = ogImageSize;
 export const contentType = ogImageContentType;
 

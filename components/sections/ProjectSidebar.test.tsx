@@ -49,9 +49,8 @@ describe("ProjectSidebar", () => {
   it("always renders the contact CTA", () => {
     render(<ProjectSidebar caseStudy={baseCaseStudy} />);
 
-    expect(screen.getByRole("link", { name: "Discuss a similar project" })).toHaveAttribute(
-      "href",
-      "/contact"
-    );
+    const cta = screen.getByRole("link", { name: "Discuss a similar project" });
+    expect(cta).toHaveAttribute("href", expect.stringContaining("docs.google.com/forms"));
+    expect(cta).toHaveAttribute("target", "_blank");
   });
 });

@@ -1,6 +1,10 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "tags": [
-    "-lintignore"
-  ]
+  "tags": ["-lintignore"],
+  "entry": [
+    "sanity/lib/client.ts",
+    "sanity/lib/image.ts",
+    "sanity/lib/live.ts"
+  ],
+  "ignore": ["lib/cms/types.ts"]
 }

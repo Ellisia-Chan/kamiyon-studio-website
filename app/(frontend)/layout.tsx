@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Poppins, Montserrat } from "next/font/google";
+import { Geologica, Montserrat } from "next/font/google";
+import { CloudflareWebAnalytics } from "@/components/analytics/CloudflareWebAnalytics";
 import { PageShell } from "@/components/layout/PageShell";
 import { AnimationProviders } from "@/components/providers/AnimationProviders";
 import { DEFAULT_DESCRIPTION, SITE_NAME } from "@/lib/seo/constants";
@@ -7,8 +8,8 @@ import { getOrganizationJsonLd } from "@/lib/seo/organization-jsonld";
 import { SITE_URL } from "@/lib/seo/site-url";
 import "../globals.css";
 
-const poppins = Poppins({
-  variable: "--font-poppins",
+const geologica = Geologica({
+  variable: "--font-geologica",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
@@ -17,7 +18,7 @@ const poppins = Poppins({
 const montserrat = Montserrat({
   variable: "--font-montserrat",
   subsets: ["latin"],
-  weight: ["600", "700"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -51,9 +52,9 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${poppins.variable} ${montserrat.variable} h-full antialiased`}
+      className={`${geologica.variable} ${montserrat.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col font-sans">
+      <body className="flex min-h-full flex-col font-body">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -63,6 +64,7 @@ export default async function RootLayout({
         <AnimationProviders>
           <PageShell>{children}</PageShell>
         </AnimationProviders>
+        <CloudflareWebAnalytics />
       </body>
     </html>
   );

@@ -2,15 +2,13 @@
 
 import type { ReactNode } from "react";
 
-import { SmoothScrollProvider } from "./SmoothScrollProvider";
+import { GsapScrollProvider } from "./GsapScrollProvider";
 
 type AnimationProvidersProps = {
   children: ReactNode;
 };
 
-/**
- * Frontend-only animation stack. Keep out of `app/(payload)/layout.tsx`.
- */
+/** Frontend-only animation stack (GSAP + native scroll). */
 export function AnimationProviders({ children }: AnimationProvidersProps) {
-  return <SmoothScrollProvider>{children}</SmoothScrollProvider>;
+  return <GsapScrollProvider>{children}</GsapScrollProvider>;
 }

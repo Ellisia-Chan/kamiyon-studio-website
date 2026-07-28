@@ -50,12 +50,14 @@ test("primary navigation links to every top-level section", async ({ page }) => 
   const nav = page.getByRole("navigation", { name: "Primary" });
   await nav.getByRole("button", { name: /open menu/i }).click();
 
-  // CardNav IA: About → Home/Studio; Work → Services/Portfolio/Blog; Contact CTA
+  // CardNav IA: About → Home/Studio; Work → Services/Products/Portfolio/Community/Blog; Contact CTA
   for (const label of [
     "Home",
     "Studio",
     "Services",
+    "Products",
     "Portfolio",
+    "Community",
     "Blog",
     "Get in touch",
   ]) {
@@ -63,13 +65,13 @@ test("primary navigation links to every top-level section", async ({ page }) => 
   }
 });
 
-test("primary navigation excludes hidden sections", async ({ page }) => {
+test("primary navigation includes products and community", async ({ page }) => {
   await page.goto("/");
 
   const nav = page.getByRole("navigation", { name: "Primary" });
   await nav.getByRole("button", { name: /open menu/i }).click();
-  await expect(nav.getByRole("link", { name: /products/i })).toHaveCount(0);
-  await expect(nav.getByRole("link", { name: /community/i })).toHaveCount(0);
+  await expect(nav.getByRole("link", { name: /products/i }).first()).toBeVisible();
+  await expect(nav.getByRole("link", { name: /community/i }).first()).toBeVisible();
 });
 
 test("skip-to-content link is keyboard accessible", async ({ page }) => {

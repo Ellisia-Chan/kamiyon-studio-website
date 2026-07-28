@@ -6,7 +6,7 @@ This repository builds the **official Kamiyon Studio marketing website** — the
 
 **Source of truth for company facts:** [`docs/`](../docs/) (Kamiyon canon).  
 **Build instructions for agents:** `context/` files (this folder).  
-**Runtime content:** Headless CMS (placeholder entries until real content is published).
+**Runtime content:** Sanity GROQ via `lib/cms` when configured; typed fallbacks otherwise (see [`WEBSITE-ESSENTIAL-CONTEXT.md`](./WEBSITE-ESSENTIAL-CONTEXT.md)).
 
 Kamiyon Studio is a Filipino creative technology studio founded in **2024** in **Biñan City, Laguna, Philippines**. It operates as both a client-services agency and an original IP studio, creating games and interactive experiences that educate, inspire, and make a lasting impact.
 
@@ -19,7 +19,7 @@ Kamiyon Studio is a Filipino creative technology studio founded in **2024** in *
 1. **Communicate identity** — Visitors understand who Kamiyon is, what we do, and why it matters within seconds of landing.
 2. **Showcase capability** — All seven site sections render from CMS with brand-compliant placeholder content until real entries exist.
 3. **Build trust** — Professional, creative, approachable presentation backed by canon facts (team, values, products) — never fabricated clients or achievements.
-4. **Drive meaningful action** — Clear CTAs that route to Services, Products, Portfolio, Community, or Contact (external links only for v1).
+4. **Drive meaningful action** — Clear CTAs that route to Services, Products, Portfolio, Community, or Contact.
 5. **Support discoverability** — Semantic structure, meaningful headings, and performance standards per website guidelines.
 
 ---
@@ -36,7 +36,7 @@ All sections defined in [`docs/marketing/website-guidelines.md`](../docs/marketi
 | **Products** | Original IP showcase (Eclipse, Vocabu, Afterschool Cleanup) | future-ip, product docs |
 | **Portfolio** | Case studies: challenge, solution, impact | website-guidelines (no named clients in canon — placeholders) |
 | **Community** | Workshops, jams, partnerships, involvement | culture, partnerships, social-media |
-| **Contact** | Facebook, LinkedIn, public email (mailto) — no forms | User v1 constraint; URLs TBD in canon |
+| **Contact** | Google Form CTA (interim) + external links; Resend in-app form planned (T8) | Form URL + siteSettings / fallbacks |
 
 ---
 
@@ -113,8 +113,9 @@ Home → About (team, culture) → Community → Contact
 ### Contact
 
 - Welcoming intro copy (CMS)
-- External links only: Facebook page, LinkedIn, public email (mailto)
-- No contact form, Calendly, auth, or backend for v1
+- Interim primary CTA: [Google Form](https://docs.google.com/forms/d/e/1FAIpQLSeIefAWJu5FP9pwljLFz1wSUxU2ybR3--GdylUYUBsGHH0yaw/viewform) (linked button)
+- External links: Facebook, LinkedIn, public email (mailto)
+- In-app form via Resend is T8; Google Form + links must keep working until then
 
 ### Global
 
@@ -137,13 +138,12 @@ Home → About (team, culture) → Community → Contact
 - Team section with canon names and roles
 - Product pages for three documented IP titles
 
-### Out of scope (v1)
+### Out of scope (until ticketed)
 
-- Contact forms or form backends
 - Calendly or booking integrations
 - User authentication or accounts
 - In-app admin panel (CMS admin is separate)
-- Blog, careers, press kit, developer insights (Vision — see website-guidelines Long-Term Evolution)
+- Blog UI (T9), careers, press kit (deferred)
 - E-commerce or client portal
 - Hardcoded production copy in React components
 
@@ -155,7 +155,7 @@ Home → About (team, culture) → Community → Contact
 2. Every factual claim on the site traces to `docs/` canon or published CMS entries — no invented history, clients, or achievements.
 3. Canon vs Vision clearly distinguished where long-term aspirations appear (e.g., global multimedia company, future site sections).
 4. Contact page works via external links; no forms or auth.
-5. Design uses Kamiyon color roles, Poppins/Montserrat typography, and logo/mascot usage rules.
+5. Design uses locked brand hex tokens, Geologica/Montserrat typography, and logo/mascot usage rules.
 6. `npm run build` passes after implementation phases.
 7. Placeholder content is generic and brand-appropriate — never fake case studies or awards.
 

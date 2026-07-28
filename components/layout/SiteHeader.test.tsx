@@ -5,45 +5,49 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SiteHeader } from "./SiteHeader";
 import { testShellProps } from "./test-shell-props";
 
-const { usePathnameMock } = vi.hoisted(() => ({
-  usePathnameMock: vi.fn(() => "/about"),
-}));
-
 vi.mock("next/navigation", () => ({
-  usePathname: () => usePathnameMock(),
+  usePathname: () => "/",
 }));
 
 vi.mock("@/lib/gsap", () => {
-  let onReverseComplete: (() => void) | null = null;
-
   const timeline = {
+    set: vi.fn().mockReturnThis(),
     to: vi.fn().mockReturnThis(),
+    fromTo: vi.fn().mockReturnThis(),
     play: vi.fn().mockReturnThis(),
-    reverse: vi.fn(() => {
-      onReverseComplete?.();
-      return timeline;
-    }),
+    reverse: vi.fn().mockReturnThis(),
     kill: vi.fn(),
-    progress: vi.fn().mockReturnThis(),
-    eventCallback: vi.fn((name: string, cb?: (() => void) | null) => {
-      if (name === "onReverseComplete") {
-        onReverseComplete = cb ?? null;
-      }
-      return timeline;
-    }),
+  };
+
+  const context = {
+    revert: vi.fn(),
   };
 
   return {
     gsap: {
       set: vi.fn(),
+      to: vi.fn(),
+      fromTo: vi.fn(),
+      defaults: vi.fn(),
+      parseEase: vi.fn(() => null),
+      registerPlugin: vi.fn(),
       timeline: vi.fn(() => timeline),
+      context: vi.fn((fn: () => void) => {
+        fn();
+        return context;
+      }),
     },
   };
 });
 
+vi.mock("gsap/CustomEase", () => ({
+  CustomEase: {
+    create: vi.fn(),
+  },
+}));
+
 describe("SiteHeader", () => {
   beforeEach(() => {
-    usePathnameMock.mockReturnValue("/about");
     Object.defineProperty(window, "matchMedia", {
       writable: true,
       value: vi.fn().mockImplementation((query: string) => ({
@@ -93,7 +97,7 @@ describe("SiteHeader", () => {
     expect(toggle).toHaveAttribute("aria-expanded", "false");
   });
 
-  it("opens the card menu when the toggle is clicked", async () => {
+  it("opens the kinetic menu when the toggle is clicked", async () => {
     const user = userEvent.setup();
     render(
       <SiteHeader
@@ -110,12 +114,10 @@ describe("SiteHeader", () => {
       "aria-expanded",
       "true",
     );
-    expect(screen.getByText("About")).toBeInTheDocument();
-    expect(screen.getByText("Work")).toBeInTheDocument();
-    expect(screen.getByText("Contact")).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Site sections" })).toBeInTheDocument();
   });
 
-  it("closes the card menu on Escape", async () => {
+  it("closes the menu on Escape", async () => {
     const user = userEvent.setup();
     render(
       <SiteHeader
@@ -134,7 +136,7 @@ describe("SiteHeader", () => {
     expect(screen.getByRole("button", { name: "Open menu" })).toBeInTheDocument();
   });
 
-  it("renders primary routes inside the card menu", async () => {
+  it("renders all primary routes inside the open menu", async () => {
     const user = userEvent.setup();
     render(
       <SiteHeader
@@ -147,39 +149,23 @@ describe("SiteHeader", () => {
 
     await user.click(screen.getByRole("button", { name: "Open menu" }));
 
-    const nav = screen.getByRole("navigation", { name: "Primary" });
-    for (const label of ["Home", "Studio", "Services", "Portfolio", "Blog"]) {
+    const nav = screen.getByRole("navigation", { name: "Site sections" });
+    for (const label of [
+      "Home",
+      "About",
+      "Services",
+      "Products",
+      "Portfolio",
+      "Community",
+      "Blog",
+      "Contact",
+    ]) {
       expect(within(nav).getByRole("link", { name: label })).toBeInTheDocument();
     }
-
-    expect(screen.queryByRole("link", { name: "Products" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Community" })).not.toBeInTheDocument();
   });
 
-  it("hides the Contact CTA in closed chrome and reveals it when open", async () => {
+  it("reveals the contact CTA when the menu is open", async () => {
     const user = userEvent.setup();
-    const { container } = render(
-      <SiteHeader
-        navItems={testShellProps.navItems}
-        contactCta={testShellProps.contactCta}
-        siteName={testShellProps.siteName}
-        socialLinks={testShellProps.socialLinks}
-      />,
-    );
-
-    const closedCta = container.querySelector(".card-nav-cta-button");
-    expect(closedCta).toHaveAttribute("href", "/contact");
-    expect(closedCta).toHaveAttribute("aria-hidden", "true");
-
-    await user.click(screen.getByRole("button", { name: "Open menu" }));
-
-    expect(container.querySelector(".card-nav-cta-button")).not.toHaveAttribute(
-      "aria-hidden",
-      "true",
-    );
-  });
-
-  it("does not expose primary card routes while the menu is closed", () => {
     render(
       <SiteHeader
         navItems={testShellProps.navItems}
@@ -189,23 +175,10 @@ describe("SiteHeader", () => {
       />,
     );
 
-    expect(screen.queryByRole("link", { name: "Studio" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Portfolio" })).not.toBeInTheDocument();
-  });
+    await user.click(screen.getByRole("button", { name: "Open menu" }));
 
-  it("collapses the home header spacer and uses transparent CardNav on /", () => {
-    usePathnameMock.mockReturnValue("/");
-    const { container } = render(
-      <SiteHeader
-        navItems={testShellProps.navItems}
-        contactCta={testShellProps.contactCta}
-        siteName={testShellProps.siteName}
-        socialLinks={testShellProps.socialLinks}
-      />,
-    );
-
-    const spacer = container.querySelector("header > div[aria-hidden='true']");
-    expect(spacer).toHaveClass("h-0");
-    expect(container.querySelector(".card-nav--transparent")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: testShellProps.contactCta.label }),
+    ).toHaveAttribute("href", testShellProps.contactCta.href);
   });
 });

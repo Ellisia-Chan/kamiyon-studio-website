@@ -1,0 +1,309 @@
+/* Kamiyon-scoped kinetic overlay nav — uses design tokens, not demo indigo. */
+.sterling-gate {
+  --sg-primary: var(--color-primary);
+  --sg-primary-soft: color-mix(in srgb, var(--color-primary) 18%, transparent);
+  --sg-gold-soft: color-mix(in srgb, var(--color-secondary) 16%, transparent);
+  --sg-ink: var(--color-black);
+  --sg-surface: var(--bg-primary);
+  --sg-muted: var(--text-muted);
+  --sg-container: min(1400px, 100%);
+  --sg-pad: clamp(1rem, 3vw, 2em);
+  --sg-ease: cubic-bezier(0.65, 0.05, 0, 1);
+  position: relative;
+  z-index: 60;
+  font-family: var(--font-display), system-ui, sans-serif;
+  color: var(--sg-ink);
+  transition: color 0.25s var(--sg-ease);
+}
+
+.sterling-gate[data-nav-theme="dark"] {
+  --sg-ink: var(--color-ivory);
+}
+
+.sterling-gate .site-header-wrapper {
+  position: relative;
+  z-index: 70;
+}
+
+.sterling-gate .header {
+  position: fixed;
+  inset: 0 0 auto;
+  pointer-events: none;
+}
+
+.sterling-gate .container.is--full {
+  width: var(--sg-container);
+  margin-inline: auto;
+  padding: var(--sg-pad);
+  pointer-events: none;
+}
+
+.sterling-gate .nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  pointer-events: none;
+}
+
+.sterling-gate .nav-logo-row {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-decoration: none;
+  color: var(--sg-ink);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  transition: color 0.25s var(--sg-ease);
+}
+
+.sterling-gate .nav-logo-row:hover,
+.sterling-gate .nav-logo-row:focus-visible {
+  color: var(--sg-primary);
+  outline: none;
+}
+
+.sterling-gate .nav-logo-mark {
+  width: 2rem;
+  height: 2rem;
+  object-fit: contain;
+}
+
+.sterling-gate .nav-row__right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  pointer-events: auto;
+}
+
+.sterling-gate .nav-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: none;
+  background: transparent;
+  color: var(--sg-ink);
+  padding: 0.65rem;
+  cursor: pointer;
+  transition: color 0.25s var(--sg-ease);
+}
+
+.sterling-gate .nav-close-btn:hover,
+.sterling-gate .nav-close-btn:focus-visible {
+  color: var(--sg-primary);
+  outline: none;
+}
+
+.sterling-gate .nav-hamburger {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 1.25rem;
+  height: 1rem;
+}
+
+.sterling-gate .nav-hamburger-line {
+  display: block;
+  width: 1.25rem;
+  height: 2px;
+  background-color: currentColor;
+  border-radius: 9999px;
+  transition:
+    transform 0.25s var(--sg-ease),
+    opacity 0.2s var(--sg-ease);
+  transform-origin: 50% 50%;
+}
+
+/* Bars are 2px tall with 5px gaps: outer bar centers sit 7px from the icon center. */
+.sterling-gate .nav-close-btn.open .nav-hamburger-line:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.sterling-gate .nav-close-btn.open .nav-hamburger-line:nth-child(2) {
+  opacity: 0;
+}
+
+.sterling-gate .nav-close-btn.open .nav-hamburger-line:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.sterling-gate .fullscreen-menu-container {
+  position: relative;
+}
+
+.sterling-gate .nav-overlay-wrapper {
+  position: fixed;
+  inset: 0;
+  z-index: 65;
+  display: none;
+}
+
+.sterling-gate .overlay {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--sg-ink) 45%, transparent);
+  opacity: 0;
+  cursor: pointer;
+}
+
+.sterling-gate .menu-content {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: min(100%, 42rem);
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+}
+
+.sterling-gate .menu-bg {
+  position: absolute;
+  inset: 0;
+}
+
+.sterling-gate .backdrop-layer {
+  position: absolute;
+  inset: 0;
+  transform: translateX(101%);
+}
+
+.sterling-gate .backdrop-layer.first {
+  background: color-mix(in srgb, var(--color-primary) 22%, var(--sg-surface));
+}
+
+.sterling-gate .backdrop-layer.second {
+  background: color-mix(in srgb, var(--color-secondary) 18%, var(--sg-surface));
+}
+
+.sterling-gate .backdrop-layer:not(.first):not(.second) {
+  background: var(--sg-surface);
+}
+
+.sterling-gate .ambient-background-shapes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.sterling-gate .bg-shape {
+  position: absolute;
+  inset: 8% 6%;
+  width: 88%;
+  height: 84%;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.sterling-gate .bg-shape.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.sterling-gate .shape-element {
+  transform-origin: center;
+  opacity: 0;
+}
+
+.sterling-gate .menu-content-wrapper {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(5rem, 12vh, 7rem) var(--sg-pad) var(--sg-pad);
+}
+
+.sterling-gate .menu-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.sterling-gate .nav-link {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  text-decoration: none;
+  color: var(--sg-ink);
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius-button, 16px);
+}
+
+.sterling-gate .nav-link-text {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-size: clamp(2rem, 6vw, 3.4rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.sterling-gate .nav-link-hover-bg {
+  position: absolute;
+  inset: 0;
+  background: var(--sg-primary-soft);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s var(--sg-ease);
+  border-radius: inherit;
+}
+
+.sterling-gate .nav-link:hover .nav-link-hover-bg,
+.sterling-gate .nav-link:focus-visible .nav-link-hover-bg {
+  transform: scaleX(1);
+}
+
+.sterling-gate .nav-link:focus-visible {
+  outline: 2px solid var(--sg-primary);
+  outline-offset: 2px;
+}
+
+.sterling-gate .menu-cta {
+  margin-top: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 0.85rem 1.4rem;
+  border-radius: var(--radius-pill, 9999px);
+  background: var(--sg-ink);
+  color: var(--sg-surface);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.sterling-gate .menu-cta:hover,
+.sterling-gate .menu-cta:focus-visible {
+  background: var(--color-primary-ink, var(--sg-primary));
+  outline: none;
+}
+
+@media (max-width: 640px) {
+  .sterling-gate .menu-content {
+    width: 100%;
+  }
+
+  .sterling-gate .nav-link-text {
+    font-size: clamp(1.75rem, 10vw, 2.5rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sterling-gate,
+  .sterling-gate .nav-link-hover-bg,
+  .sterling-gate .nav-close-btn,
+  .sterling-gate .nav-logo-row,
+  .sterling-gate .nav-hamburger-line {
+    transition: none;
+  }
+}

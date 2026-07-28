@@ -25,6 +25,45 @@ if (typeof window !== "undefined" && typeof window.matchMedia !== "function") {
   });
 }
 
+/** jsdom lacks IntersectionObserver; default to intersecting for curtain UIs. */
+class MockIntersectionObserver implements IntersectionObserver {
+  readonly root = null;
+  readonly rootMargin = "";
+  readonly thresholds: readonly number[] = [];
+
+  constructor(private readonly callback: IntersectionObserverCallback) {}
+
+  observe(target: Element): void {
+    this.callback(
+      [
+        {
+          isIntersecting: true,
+          target,
+          intersectionRatio: 1,
+          boundingClientRect: target.getBoundingClientRect(),
+          intersectionRect: target.getBoundingClientRect(),
+          rootBounds: null,
+          time: Date.now(),
+        },
+      ],
+      this,
+    );
+  }
+
+  unobserve(): void {}
+  disconnect(): void {}
+  takeRecords(): IntersectionObserverEntry[] {
+    return [];
+  }
+}
+
+if (
+  typeof globalThis !== "undefined" &&
+  typeof globalThis.IntersectionObserver === "undefined"
+) {
+  vi.stubGlobal("IntersectionObserver", MockIntersectionObserver);
+}
+
 afterEach(() => {
   cleanup();
 });

@@ -1,11 +1,12 @@
-import Link from "next/link";
+import { SameRouteLink } from "@/components/ui/SameRouteLink";
 import { Container } from "@/components/ui/Container";
 import type { AboutPage } from "@/lib/cms/types";
+import { CONTACT_CTA } from "@/lib/config/navigation";
 
 const QUICK_LINKS = [
   { label: "Our values", href: "#values" },
   { label: "Meet the team", href: "#team" },
-  { label: "Contact us", href: "/contact" },
+  { label: "Contact us", href: CONTACT_CTA.href },
 ] as const;
 
 type AboutHeroProps = {
@@ -31,13 +32,13 @@ export function AboutHero({ aboutPage }: AboutHeroProps) {
           className="mt-8 flex flex-wrap items-center justify-center gap-4"
         >
           {QUICK_LINKS.map((link) => (
-            <Link
+            <SameRouteLink
               key={link.href}
               href={link.href}
               className="text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-sakura-ink focus-visible:outline-offset-2"
             >
               {link.label}
-            </Link>
+            </SameRouteLink>
           ))}
         </nav>
       </Container>

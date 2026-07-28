@@ -8,17 +8,12 @@ import {
   GSAP_ALLOW_MOTION,
   GSAP_REDUCE_MOTION,
 } from "@/lib/gsap";
-import { attachScrollVelocityBlur } from "@/lib/motion/attach-velocity-blur";
 import {
   MOTION_DISTANCE,
   MOTION_DURATION,
   MOTION_EASE,
   MOTION_STAGGER,
 } from "@/lib/motion/constants";
-import {
-  MOTION_BLUR,
-  formatBlurFilter,
-} from "@/lib/motion/motion-blur";
 import type { MotionElementRef, StaggerOptions } from "@/lib/motion/types";
 
 import { useGsapContext } from "./useGsapContext";
@@ -34,8 +29,6 @@ const defaults: Required<
     | "once"
     | "disabled"
     | "childSelector"
-    | "motionBlur"
-    | "enterBlur"
   >
 > = {
   delay: 0,
@@ -46,8 +39,6 @@ const defaults: Required<
   once: true,
   disabled: false,
   childSelector: ":scope > *",
-  motionBlur: true,
-  enterBlur: MOTION_BLUR.enter,
 };
 
 export function useStagger<T extends HTMLElement = HTMLElement>(
@@ -73,27 +64,19 @@ export function useStagger<T extends HTMLElement = HTMLElement>(
       const trigger = merged.trigger ?? el;
 
       mm.add(GSAP_REDUCE_MOTION, () => {
-        gsap.set(children, { autoAlpha: 1, y: 0, clearProps: "filter" });
+        gsap.set(children, { autoAlpha: 1, y: 0 });
       });
 
       mm.add(GSAP_ALLOW_MOTION, () => {
-        const blurEnabled = merged.motionBlur;
-        const enterFilter = blurEnabled
-          ? formatBlurFilter(merged.enterBlur)
-          : undefined;
-        const clearFilter = blurEnabled ? formatBlurFilter(0) : undefined;
-
         gsap.fromTo(
           children,
           {
             autoAlpha: 0,
             y: merged.y,
-            ...(enterFilter ? { filter: enterFilter } : {}),
           },
           {
             autoAlpha: 1,
             y: 0,
-            ...(clearFilter ? { filter: clearFilter } : {}),
             duration: merged.duration,
             delay: merged.delay,
             ease: MOTION_EASE.out,
@@ -106,16 +89,6 @@ export function useStagger<T extends HTMLElement = HTMLElement>(
           },
         );
       });
-
-      if (merged.motionBlur) {
-        mm.add(`${GSAP_ALLOW_MOTION} and (pointer: fine)`, () => {
-          children.forEach((child) => {
-            if (child instanceof HTMLElement) {
-              attachScrollVelocityBlur(child, trigger);
-            }
-          });
-        });
-      }
     },
     [
       merged.delay,
@@ -128,8 +101,6 @@ export function useStagger<T extends HTMLElement = HTMLElement>(
       merged.start,
       merged.trigger,
       merged.childSelector,
-      merged.motionBlur,
-      merged.enterBlur,
     ],
   );
 

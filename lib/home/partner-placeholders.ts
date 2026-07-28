@@ -1,6 +1,10 @@
 export type PartnerPlaceholder = {
   id: string;
   label: string;
+  /** Allowlisted CDN URL when a partner logo is uploaded in Sanity. */
+  logoUrl?: string | null;
+  /** Accessible alt text for the logo image. */
+  logoAlt?: string | null;
 };
 
 /** Static partner logo slots — never real client names. */

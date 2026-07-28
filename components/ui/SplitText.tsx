@@ -56,18 +56,27 @@ export function SplitText({
   }, [onLetterAnimationComplete]);
 
   useEffect(() => {
+    let cancelled = false;
+    const markLoaded = () => {
+      if (!cancelled) setFontsLoaded(true);
+    };
+
     if (typeof document === "undefined" || !document.fonts) {
-      setFontsLoaded(true);
-      return;
+      void Promise.resolve().then(markLoaded);
+      return () => {
+        cancelled = true;
+      };
     }
 
     if (document.fonts.status === "loaded") {
-      setFontsLoaded(true);
+      void Promise.resolve().then(markLoaded);
     } else {
-      void document.fonts.ready.then(() => {
-        setFontsLoaded(true);
-      });
+      void document.fonts.ready.then(markLoaded);
     }
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useGSAP(
@@ -200,5 +209,3 @@ export function SplitText({
     </Tag>
   );
 }
-
-export default SplitText;

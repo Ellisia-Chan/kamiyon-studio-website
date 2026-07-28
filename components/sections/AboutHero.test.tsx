@@ -1,7 +1,13 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type { AboutPage } from "@/lib/cms/types";
+import { INTERIM_CONTACT_FORM_URL } from "@/lib/contact/channels";
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/about",
+}));
+
 import { AboutHero } from "./AboutHero";
 
 const baseAboutPage: AboutPage = {
@@ -29,6 +35,8 @@ describe("AboutHero", () => {
 
     expect(screen.getByRole("link", { name: "Our values" })).toHaveAttribute("href", "#values");
     expect(screen.getByRole("link", { name: "Meet the team" })).toHaveAttribute("href", "#team");
-    expect(screen.getByRole("link", { name: "Contact us" })).toHaveAttribute("href", "/contact");
+    const contact = screen.getByRole("link", { name: "Contact us" });
+    expect(contact).toHaveAttribute("href", INTERIM_CONTACT_FORM_URL);
+    expect(contact).toHaveAttribute("target", "_blank");
   });
 });

@@ -11,13 +11,7 @@
       "source": "greensock/gsap-skills",
       "sourceType": "github",
       "skillPath": "skills/gsap-scrolltrigger/SKILL.md",
-      "computedHash": "358dd3381c74fc4be8db5a94e0cd008bf0fa7c1ccd45999671b0d61b9d9ffd9b"
-    },
-    "payload": {
-      "source": "payloadcms/skills",
-      "sourceType": "github",
-      "skillPath": "skills/payload/SKILL.md",
-      "computedHash": "1cc1ce9d9461d031e3f9dba24bf8bbf80129a533a2d56c6e5452be14c283b582"
+      "computedHash": "358dd3381c74fc4be8db5a94e0cd008bf0fa7c1ccd45999671b0d9d9ffd9b"
     }
   }
 }

@@ -1,0 +1,110 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "main": ".open-next/worker.js",
+  "name": "kamiyon-studio-website",
+  "compatibility_date": "2026-07-23",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+  // Top level targets the same Worker name as `env.production`, so keep its vars
+  // identical: a bare `wrangler deploy` (no `--env`) must not overwrite production
+  // without APP_ENV / NEXT_PRIVATE_MINIMAL_MODE.
+  "vars": {
+    "APP_ENV": "production",
+    "NEXT_PUBLIC_SITE_URL": "https://kamiyonstudio.com",
+    "NEXT_PUBLIC_R2_PUBLIC_BASE_URL": "https://media.kamiyonstudio.com",
+    "NEXT_PUBLIC_SANITY_PROJECT_ID": "c6ej1xoj",
+    "NEXT_PUBLIC_SANITY_DATASET": "kamiyon",
+    "NEXT_PUBLIC_SANITY_STUDIO_URL": "https://kamiyon.sanity.studio",
+    "NEXT_PRIVATE_MINIMAL_MODE": "1",
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      // Must match the Worker "name" for this environment
+      "service": "kamiyon-studio-website",
+    },
+  ],
+  // Track F provisioned: kamiyon-media-{staging,prod}, kamiyon-next-cache-{staging,prod}.
+  "r2_buckets": [
+    {
+      "binding": "MEDIA_BUCKET",
+      "bucket_name": "kamiyon-media-prod",
+    },
+    {
+      "binding": "NEXT_INC_CACHE_R2_BUCKET",
+      "bucket_name": "kamiyon-next-cache-prod",
+    },
+  ],
+  "env": {
+    "staging": {
+      "name": "kamiyon-studio-website-staging",
+      "workers_dev": true,
+      "vars": {
+        "APP_ENV": "staging",
+        "NEXT_PUBLIC_SITE_URL": "https://kamiyon-studio-website-staging.limosnerosherwin.workers.dev",
+        "NEXT_PUBLIC_R2_PUBLIC_BASE_URL": "https://media-staging.kamiyonstudio.com",
+        "NEXT_PUBLIC_SANITY_PROJECT_ID": "c6ej1xoj",
+        "NEXT_PUBLIC_SANITY_DATASET": "kamiyon",
+        "NEXT_PUBLIC_SANITY_STUDIO_URL": "https://kamiyon.sanity.studio",
+        // T14 Cloudflare Web Analytics site tag — empty = beacon disabled.
+        // Public vars inline at build time, so also set it for the build that
+        // produces this deploy. See context/analytics-setup.md.
+        "NEXT_PUBLIC_CF_WEB_ANALYTICS_TOKEN": "",
+        // Skip Next getMiddlewareManifest() dynamic require (Workers 500s without this)
+        "NEXT_PRIVATE_MINIMAL_MODE": "1",
+      },
+      "services": [
+        {
+          "binding": "WORKER_SELF_REFERENCE",
+          "service": "kamiyon-studio-website-staging",
+        },
+      ],
+      "r2_buckets": [
+        {
+          "binding": "MEDIA_BUCKET",
+          "bucket_name": "kamiyon-media-staging",
+        },
+        {
+          "binding": "NEXT_INC_CACHE_R2_BUCKET",
+          "bucket_name": "kamiyon-next-cache-staging",
+        },
+      ],
+    },
+    "production": {
+      "name": "kamiyon-studio-website",
+      "workers_dev": true,
+      "vars": {
+        "APP_ENV": "production",
+        "NEXT_PUBLIC_SITE_URL": "https://kamiyonstudio.com",
+        "NEXT_PUBLIC_R2_PUBLIC_BASE_URL": "https://media.kamiyonstudio.com",
+        "NEXT_PUBLIC_SANITY_PROJECT_ID": "c6ej1xoj",
+        "NEXT_PUBLIC_SANITY_DATASET": "kamiyon",
+        "NEXT_PUBLIC_SANITY_STUDIO_URL": "https://kamiyon.sanity.studio",
+        // T14 Cloudflare Web Analytics site tag — empty = beacon disabled.
+        // Public vars inline at build time, so also set it for the build that
+        // produces this deploy. See context/analytics-setup.md.
+        "NEXT_PUBLIC_CF_WEB_ANALYTICS_TOKEN": "",
+        "NEXT_PRIVATE_MINIMAL_MODE": "1",
+      },
+      "services": [
+        {
+          "binding": "WORKER_SELF_REFERENCE",
+          "service": "kamiyon-studio-website",
+        },
+      ],
+      "r2_buckets": [
+        {
+          "binding": "MEDIA_BUCKET",
+          "bucket_name": "kamiyon-media-prod",
+        },
+        {
+          "binding": "NEXT_INC_CACHE_R2_BUCKET",
+          "bucket_name": "kamiyon-next-cache-prod",
+        },
+      ],
+    },
+  },
+}

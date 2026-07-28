@@ -1,4 +1,5 @@
 import type { Cta, SiteSettings, SocialLink } from "@/lib/cms/types";
+import { INTERIM_CONTACT_FORM_URL } from "@/lib/contact/channels";
 import {
   CONTACT_CTA,
   PRIMARY_NAV_ITEMS,
@@ -6,6 +7,15 @@ import {
   type NavSocialLink,
 } from "@/lib/config/navigation";
 import { SITE_MOTTO, SITE_NAME } from "@/lib/seo/constants";
+
+function isContactCtaHref(href: string): boolean {
+  return (
+    href === "/contact" ||
+    href === INTERIM_CONTACT_FORM_URL ||
+    href === CONTACT_CTA.href ||
+    href.startsWith("https://docs.google.com/forms/")
+  );
+}
 
 export type ShellNavProps = {
   navItems: readonly NavItem[];
@@ -18,11 +28,14 @@ export type ShellNavProps = {
 const PLATFORM_LABELS: Record<SocialLink["platform"], string> = {
   facebook: "Facebook",
   linkedin: "LinkedIn",
+  itch: "itch.io",
+  youtube: "YouTube",
+  x: "X",
   email: "Email",
 };
 
 export function getContactCtaFromSettings(globalCtas: Cta[]): NavItem {
-  const contactCta = globalCtas.find((cta) => cta.href === "/contact");
+  const contactCta = globalCtas.find((cta) => isContactCtaHref(cta.href));
 
   if (contactCta) {
     return {

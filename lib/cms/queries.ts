@@ -1,24 +1,45 @@
-import { unstable_cache } from "next/cache";
-
+import { safeSanityFetch } from "./fetch";
+import {
+  aboutPageQuery,
+  caseStudiesQuery,
+  caseStudyBySlugQuery,
+  communityItemsQuery,
+  contactPageQuery,
+  homePageQuery,
+  partnersQuery,
+  postBySlugQuery,
+  postsQuery,
+  productBySlugQuery,
+  productsQuery,
+  serviceBySlugQuery,
+  serviceCategoriesQuery,
+  servicesQuery,
+  siteSettingsQuery,
+  teamMembersQuery,
+} from "./groq";
 import {
   mapAboutPage,
   mapCaseStudy,
+  mapCollection,
   mapCommunityItem,
   mapContactPage,
   mapHomePage,
+  mapPartner,
+  mapPost,
   mapProduct,
   mapService,
   mapServiceCategory,
   mapSiteSettings,
   mapTeamMember,
-} from "./adapters/mappers";
-import { getPayloadClient } from "./client";
+} from "./mappers";
 import type {
   AboutPage,
   CaseStudy,
   CommunityItem,
   ContactPage,
   HomePage,
+  Partner,
+  Post,
   Product,
   Service,
   ServiceCategory,
@@ -26,255 +47,109 @@ import type {
   TeamMember,
 } from "./types";
 
-const CMS_REVALIDATE_SECONDS = 3600;
+/**
+ * CMS query layer — Sanity + GROQ with typed fallbacks.
+ * Returns null when Sanity is unset, empty, or errors so pages keep using resolveWithFallback().
+ */
 
-async function fetchPayload<T>(
-  cacheKey: string,
-  loader: () => Promise<T | null>
-): Promise<T | null> {
-  const payload = await getPayloadClient();
-
-  if (!payload) {
-    return null;
-  }
-
-  try {
-    return await unstable_cache(loader, [cacheKey], {
-      revalidate: CMS_REVALIDATE_SECONDS,
-    })();
-  } catch (error) {
-    console.error("Payload CMS fetch failed; using typed fallback content.", error);
-    return null;
-  }
+export async function getSiteSettings(): Promise<SiteSettings | null> {
+  return mapSiteSettings(await safeSanityFetch(siteSettingsQuery, {}, { tags: ["sanity", "siteSettings"] }));
 }
 
-function nullIfEmpty<T>(items: T[]): T[] | null {
-  return items.length > 0 ? items : null;
+export async function getHomePage(): Promise<HomePage | null> {
+  return mapHomePage(await safeSanityFetch(homePageQuery, {}, { tags: ["sanity", "homePage"] }));
 }
 
-export function getSiteSettings(): Promise<SiteSettings | null> {
-  return fetchPayload("payload:site-settings", async () => {
-    const payload = await getPayloadClient();
-    if (!payload) return null;
-
-    const doc = await payload.findGlobal({
-      slug: "site-settings",
-      depth: 2,
-    });
-
-    return mapSiteSettings(doc as Record<string, unknown>);
-  });
+export async function getAboutPage(): Promise<AboutPage | null> {
+  return mapAboutPage(await safeSanityFetch(aboutPageQuery, {}, { tags: ["sanity", "aboutPage"] }));
 }
 
-export function getHomePage(): Promise<HomePage | null> {
-  return fetchPayload("payload:home-page", async () => {
-    const payload = await getPayloadClient();
-    if (!payload) return null;
-
-    const doc = await payload.findGlobal({
-      slug: "home-page",
-      depth: 2,
-    });
-
-    return mapHomePage(doc as Record<string, unknown>);
-  });
+export async function getContactPage(): Promise<ContactPage | null> {
+  return mapContactPage(
+    await safeSanityFetch(contactPageQuery, {}, { tags: ["sanity", "contactPage"] }),
+  );
 }
 
-export function getAboutPage(): Promise<AboutPage | null> {
-  return fetchPayload("payload:about-page", async () => {
-    const payload = await getPayloadClient();
-    if (!payload) return null;
-
-    const doc = await payload.findGlobal({
-      slug: "about-page",
-      depth: 1,
-    });
-
-    return mapAboutPage(doc as Record<string, unknown>);
-  });
+export async function getTeamMembers(): Promise<TeamMember[] | null> {
+  return mapCollection(
+    await safeSanityFetch(teamMembersQuery, {}, { tags: ["sanity", "teamMember"] }),
+    mapTeamMember,
+  );
 }
 
-export function getContactPage(): Promise<ContactPage | null> {
-  return fetchPayload("payload:contact-page", async () => {
-    const payload = await getPayloadClient();
-    if (!payload) return null;
-
-    const doc = await payload.findGlobal({
-      slug: "contact-page",
-      depth: 1,
-    });
-
-    return mapContactPage(doc as Record<string, unknown>);
-  });
+export async function getServiceCategories(): Promise<ServiceCategory[] | null> {
+  return mapCollection(
+    await safeSanityFetch(serviceCategoriesQuery, {}, { tags: ["sanity", "serviceCategory"] }),
+    mapServiceCategory,
+  );
 }
 
-export function getTeamMembers(): Promise<TeamMember[] | null> {
-  return fetchPayload("payload:team-members", async () => {
-    const payload = await getPayloadClient();
-    if (!payload) return null;
-
-    const result = await payload.find({
-      collection: "team-members",
-      depth: 2,
-      limit: 100,
-      sort: "order",
-    });
-
-    return nullIfEmpty(
-      result.docs.map((doc) => mapTeamMember(doc as Record<string, unknown>))
-    );
-  });
+export async function getServices(): Promise<Service[] | null> {
+  return mapCollection(
+    await safeSanityFetch(servicesQuery, {}, { tags: ["sanity", "service"] }),
+    mapService,
+  );
 }
 
-export function getServiceCategories(): Promise<ServiceCategory[] | null> {
-  return fetchPayload("payload:service-categories", async () => {
-    const payload = await getPayloadClient();
-    if (!payload) return null;
-
-    const result = await payload.find({
-      collection: "service-categories",
-      depth: 0,
-      limit: 100,
-      sort: "order",
-    });
-
-    return nullIfEmpty(
-      result.docs.map((doc) => mapServiceCategory(doc as Record<string, unknown>))
-    );
-  });
+export async function getServiceBySlug(slug: string): Promise<Service | null> {
+  return mapService(
+    await safeSanityFetch(serviceBySlugQuery, { slug }, { tags: ["sanity", "service", `service:${slug}`] }),
+  );
 }
 
-export function getServices(): Promise<Service[] | null> {
-  return fetchPayload("payload:services", async () => {
-    const payload = await getPayloadClient();
-    if (!payload) return null;
-
-    const result = await payload.find({
-      collection: "services",
-      depth: 2,
-      limit: 100,
-      sort: "order",
-    });
-
-    return nullIfEmpty(
-      result.docs.map((doc) => mapService(doc as Record<string, unknown>))
-    );
-  });
+export async function getProducts(): Promise<Product[] | null> {
+  return mapCollection(
+    await safeSanityFetch(productsQuery, {}, { tags: ["sanity", "product"] }),
+    mapProduct,
+  );
 }
 
-export function getServiceBySlug(slug: string): Promise<Service | null> {
-  return fetchPayload(`payload:service:${slug}`, async () => {
-    const payload = await getPayloadClient();
-    if (!payload) return null;
-
-    const result = await payload.find({
-      collection: "services",
-      depth: 2,
-      limit: 1,
-      where: {
-        slug: {
-          equals: slug,
-        },
-      },
-    });
-
-    const doc = result.docs[0];
-    return doc ? mapService(doc as Record<string, unknown>) : null;
-  });
+export async function getProductBySlug(slug: string): Promise<Product | null> {
+  return mapProduct(
+    await safeSanityFetch(productBySlugQuery, { slug }, { tags: ["sanity", "product", `product:${slug}`] }),
+  );
 }
 
-export function getProducts(): Promise<Product[] | null> {
-  return fetchPayload("payload:products", async () => {
-    const payload = await getPayloadClient();
-    if (!payload) return null;
-
-    const result = await payload.find({
-      collection: "products",
-      depth: 2,
-      limit: 100,
-      sort: "order",
-    });
-
-    return nullIfEmpty(
-      result.docs.map((doc) => mapProduct(doc as Record<string, unknown>))
-    );
-  });
+export async function getCaseStudies(): Promise<CaseStudy[] | null> {
+  return mapCollection(
+    await safeSanityFetch(caseStudiesQuery, {}, { tags: ["sanity", "caseStudy"] }),
+    mapCaseStudy,
+  );
 }
 
-export function getProductBySlug(slug: string): Promise<Product | null> {
-  return fetchPayload(`payload:product:${slug}`, async () => {
-    const payload = await getPayloadClient();
-    if (!payload) return null;
-
-    const result = await payload.find({
-      collection: "products",
-      depth: 2,
-      limit: 1,
-      where: {
-        slug: {
-          equals: slug,
-        },
-      },
-    });
-
-    const doc = result.docs[0];
-    return doc ? mapProduct(doc as Record<string, unknown>) : null;
-  });
+export async function getCaseStudyBySlug(slug: string): Promise<CaseStudy | null> {
+  return mapCaseStudy(
+    await safeSanityFetch(
+      caseStudyBySlugQuery,
+      { slug },
+      { tags: ["sanity", "caseStudy", `caseStudy:${slug}`] },
+    ),
+  );
 }
 
-export function getCaseStudies(): Promise<CaseStudy[] | null> {
-  return fetchPayload("payload:case-studies", async () => {
-    const payload = await getPayloadClient();
-    if (!payload) return null;
-
-    const result = await payload.find({
-      collection: "case-studies",
-      depth: 2,
-      limit: 100,
-      sort: ["-featured", "-publishedAt"],
-    });
-
-    return nullIfEmpty(
-      result.docs.map((doc) => mapCaseStudy(doc as Record<string, unknown>))
-    );
-  });
+export async function getCommunityItems(): Promise<CommunityItem[] | null> {
+  return mapCollection(
+    await safeSanityFetch(communityItemsQuery, {}, { tags: ["sanity", "communityItem"] }),
+    mapCommunityItem,
+  );
 }
 
-export function getCaseStudyBySlug(slug: string): Promise<CaseStudy | null> {
-  return fetchPayload(`payload:case-study:${slug}`, async () => {
-    const payload = await getPayloadClient();
-    if (!payload) return null;
-
-    const result = await payload.find({
-      collection: "case-studies",
-      depth: 2,
-      limit: 1,
-      where: {
-        slug: {
-          equals: slug,
-        },
-      },
-    });
-
-    const doc = result.docs[0];
-    return doc ? mapCaseStudy(doc as Record<string, unknown>) : null;
-  });
+export async function getPartners(): Promise<Partner[] | null> {
+  return mapCollection(
+    await safeSanityFetch(partnersQuery, {}, { tags: ["sanity", "partner"] }),
+    mapPartner,
+  );
 }
 
-export function getCommunityItems(): Promise<CommunityItem[] | null> {
-  return fetchPayload("payload:community-items", async () => {
-    const payload = await getPayloadClient();
-    if (!payload) return null;
+export async function getPosts(): Promise<Post[] | null> {
+  return mapCollection(
+    await safeSanityFetch(postsQuery, {}, { tags: ["sanity", "post"] }),
+    mapPost,
+  );
+}
 
-    const result = await payload.find({
-      collection: "community-items",
-      depth: 2,
-      limit: 100,
-      sort: ["-date", "title"],
-    });
-
-    return nullIfEmpty(
-      result.docs.map((doc) => mapCommunityItem(doc as Record<string, unknown>))
-    );
-  });
+export async function getPostBySlug(slug: string): Promise<Post | null> {
+  return mapPost(
+    await safeSanityFetch(postBySlugQuery, { slug }, { tags: ["sanity", "post", `post:${slug}`] }),
+  );
 }

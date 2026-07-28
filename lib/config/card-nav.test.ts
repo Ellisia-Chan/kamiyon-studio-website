@@ -21,7 +21,9 @@ describe("buildCardNavItems", () => {
     expect(about.links.map((link) => link.href)).toEqual(["/", "/about"]);
     expect(work.links.map((link) => link.href)).toEqual([
       "/services",
+      "/products",
       "/portfolio",
+      "/community",
       "/blog",
     ]);
   });
@@ -39,12 +41,12 @@ describe("buildCardNavItems", () => {
     );
   });
 
-  it("excludes Products and Community from card links", () => {
+  it("includes Products and Community in card links", () => {
     const hrefs = buildCardNavItems(CONTACT_CTA).flatMap((item) =>
       item.links.map((link) => link.href),
     );
 
-    expect(hrefs).not.toContain("/products");
-    expect(hrefs).not.toContain("/community");
+    expect(hrefs).toContain("/products");
+    expect(hrefs).toContain("/community");
   });
 });

@@ -75,7 +75,7 @@ describe("isCrawlableProduction", () => {
     vi.resetModules();
   });
 
-  it("allows production VERCEL_ENV with canonical SITE_URL", async () => {
+  it("allows production APP_ENV with canonical SITE_URL", async () => {
     const { isCrawlableProduction } = await import("./site-url");
 
     expect(
@@ -83,7 +83,7 @@ describe("isCrawlableProduction", () => {
     ).toBe(true);
   });
 
-  it("allows local (unset VERCEL_ENV) with canonical SITE_URL", async () => {
+  it("allows local (unset APP_ENV) with canonical SITE_URL", async () => {
     const { isCrawlableProduction } = await import("./site-url");
 
     expect(isCrawlableProduction("https://kamiyonstudio.com")).toBe(true);
@@ -102,9 +102,12 @@ describe("isCrawlableProduction", () => {
     expect(
       isCrawlableProduction("https://kamiyonstudio.com", "development")
     ).toBe(false);
+    expect(
+      isCrawlableProduction("https://kamiyonstudio.com", "staging")
+    ).toBe(false);
   });
 
-  it("rejects non-canonical SITE_URL regardless of VERCEL_ENV", async () => {
+  it("rejects non-canonical SITE_URL regardless of APP_ENV", async () => {
     const { isCrawlableProduction } = await import("./site-url");
 
     expect(isCrawlableProduction("http://localhost:3000", "production")).toBe(

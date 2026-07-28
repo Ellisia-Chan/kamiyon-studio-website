@@ -4,7 +4,7 @@ import {
   type NavSocialLink,
 } from "@/lib/config/navigation";
 
-export type CardNavLink = {
+type CardNavLink = {
   label: string;
   href: string;
   ariaLabel: string;
@@ -25,8 +25,7 @@ const CARD_BG_TERTIARY =
   "color-mix(in srgb, var(--color-charcoal) 78%, white)";
 
 /**
- * Maps shell nav into CardNav’s 3-card model (About / Work / Contact).
- * Products and Community stay hidden from shell nav.
+ * Maps shell nav into CardNav's 3-card model (About / Work / Contact).
  */
 export function buildCardNavItems(
   contactCta: NavItem,
@@ -61,7 +60,9 @@ export function buildCardNavItems(
       textColor: CARD_TEXT,
       links: [
         { label: "Services", href: "/services", ariaLabel: "Services" },
+        { label: "Products", href: "/products", ariaLabel: "Products" },
         { label: "Portfolio", href: "/portfolio", ariaLabel: "Portfolio" },
+        { label: "Community", href: "/community", ariaLabel: "Community" },
         { label: "Blog", href: "/blog", ariaLabel: "Blog" },
       ],
     },

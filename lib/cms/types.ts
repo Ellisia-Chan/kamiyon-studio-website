@@ -8,8 +8,10 @@ export type Slug = {
 
 export type CmsImage = {
   _key?: string;
-  /** Payload media URL when populated by the CMS adapter. */
+  /** Public CDN URL when resolved from Sanity `r2Asset`. */
   url?: string;
+  /** R2 object key used with `getMediaUrl` when `url` is absent. */
+  key?: string;
   alt?: string | null;
   caption?: string | null;
 };
@@ -26,6 +28,15 @@ export type PortableTextBlock = {
   markDefs?: Array<Record<string, unknown>>;
 };
 
+/** Blog portable-text image block (`blogBody` inlineImage). */
+export type PortableTextInlineImage = {
+  _key?: string;
+  _type: "inlineImage";
+  asset?: CmsImage;
+};
+
+export type BlogBodyBlock = PortableTextBlock | PortableTextInlineImage;
+
 /** Spec 02 — seoMetadata, cta, socialLink */
 
 export type SeoMetadata = {
@@ -41,8 +52,16 @@ export type Cta = {
   variant?: CtaVariant;
 };
 
+export type SocialPlatform =
+  | "facebook"
+  | "linkedin"
+  | "email"
+  | "itch"
+  | "youtube"
+  | "x";
+
 export type SocialLink = {
-  platform: "facebook" | "linkedin" | "email";
+  platform: SocialPlatform;
   url: string;
   label: string;
   isPlaceholder?: boolean;
@@ -150,7 +169,7 @@ export type AboutPage = {
 /** Spec 03 — contactPage embedded objects */
 
 export type ContactChannel = {
-  type: "facebook" | "linkedin" | "email";
+  type: SocialPlatform;
   label: string;
   value: string;
   isPlaceholder?: boolean;
@@ -266,6 +285,20 @@ export type CaseStudy = {
   seo: SeoMetadata;
 };
 
+/** Spec 05 — partner (home marquee) */
+
+export type Partner = {
+  _type: "partner";
+  /** Marquee key: slug.current, else document `_id`. */
+  id: string;
+  label: string;
+  slug: Slug;
+  order: number;
+  /** Logo/icon only — home marquee displays without links. */
+  logo?: CmsImage;
+  isPlaceholder: boolean;
+};
+
 /** Spec 05 — communityItem */
 
 export type CommunityItemType =
@@ -290,4 +323,42 @@ export type CommunityItem = {
   externalUrl?: string;
   isPlaceholder: boolean;
   seo: SeoMetadata;
+};
+
+/** Spec 07 — blog */
+
+export type Author = {
+  _type: "author";
+  name: string;
+  slug: Slug;
+  bio?: string;
+  avatar?: CmsImage;
+};
+
+export type BlogCategory = {
+  _type: "category";
+  title: string;
+  slug: Slug;
+};
+
+export type BlogTag = {
+  _type: "tag";
+  title: string;
+  slug: Slug;
+};
+
+export type Post = {
+  _type: "post";
+  title: string;
+  slug: Slug;
+  authors: Author[];
+  categories: BlogCategory[];
+  tags: BlogTag[];
+  featuredImage?: CmsImage;
+  body: BlogBodyBlock[];
+  seo: SeoMetadata;
+  readingTimeMinutes?: number;
+  publishedAt: string;
+  updatedAt?: string;
+  relatedPostSlugs: string[];
 };

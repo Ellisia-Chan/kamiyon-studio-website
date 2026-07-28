@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
+import { SameRouteLink } from "@/components/ui/SameRouteLink";
+import { CONTACT_CTA } from "@/lib/config/navigation";
 
 export const metadata: Metadata = {
   title: "Page not found",
@@ -26,12 +27,12 @@ export default function NotFound() {
           <Button href="/" variant="primary">
             Back to home
           </Button>
-          <Link
-            href="/contact"
+          <SameRouteLink
+            href={CONTACT_CTA.href}
             className="text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-sakura-ink focus-visible:outline-offset-2"
           >
-            Get in touch
-          </Link>
+            {CONTACT_CTA.label}
+          </SameRouteLink>
         </div>
       </Container>
     </section>

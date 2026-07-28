@@ -1,43 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
-
-vi.mock("framer-motion", () => {
-  const passthrough =
-    (Tag: "div" | "img" | "figcaption") =>
-    ({
-      children,
-      ...props
-    }: {
-      children?: React.ReactNode;
-      className?: string;
-      src?: string;
-      alt?: string;
-      style?: React.CSSProperties;
-    }) => {
-      const { ...rest } = props;
-      if (Tag === "img") {
-        return <img {...rest} />;
-      }
-      if (Tag === "figcaption") {
-        return <figcaption {...rest}>{children}</figcaption>;
-      }
-      return <div {...rest}>{children}</div>;
-    };
-
-  return {
-    motion: {
-      div: passthrough("div"),
-      img: passthrough("img"),
-      figcaption: passthrough("figcaption"),
-    },
-    useMotionValue: (initial = 0) => ({
-      get: () => initial,
-      set: vi.fn(),
-    }),
-    useSpring: (value: unknown) => value,
-    useReducedMotion: () => false,
-  };
-});
+import { describe, expect, it } from "vitest";
 
 import { TiltedCard } from "./TiltedCard";
 
@@ -65,13 +27,13 @@ describe("TiltedCard", () => {
         showMobileWarning={false}
         showTooltip={false}
       >
-        <a href="/products/eclipse">Eclipse</a>
+        <a href="https://example.com/products/eclipse">Eclipse</a>
       </TiltedCard>,
     );
 
     expect(screen.getByRole("link", { name: "Eclipse" })).toHaveAttribute(
       "href",
-      "/products/eclipse",
+      "https://example.com/products/eclipse",
     );
   });
 

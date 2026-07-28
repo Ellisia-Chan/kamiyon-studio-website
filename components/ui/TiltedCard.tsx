@@ -7,20 +7,10 @@ import {
   type MouseEvent,
   type ReactNode,
 } from "react";
-import {
-  motion,
-  useMotionValue,
-  useReducedMotion,
-  useSpring,
-} from "framer-motion";
+
+import { prefersReducedMotion } from "@/lib/motion/reduced-motion";
 
 import "./TiltedCard.css";
-
-const springValues = {
-  damping: 30,
-  stiffness: 100,
-  mass: 2,
-};
 
 /** Sensible defaults when wrapping marketing UI cards (not demo image cards). */
 export const marketingCardTiltProps = {
@@ -50,9 +40,28 @@ export type TiltedCardProps = {
   className?: string;
 };
 
+type TiltState = {
+  rotateX: number;
+  rotateY: number;
+  scale: number;
+  captionX: number;
+  captionY: number;
+  captionOpacity: number;
+  captionRotate: number;
+};
+
+const idleTilt: TiltState = {
+  rotateX: 0,
+  rotateY: 0,
+  scale: 1,
+  captionX: 0,
+  captionY: 0,
+  captionOpacity: 0,
+  captionRotate: 0,
+};
+
 /**
- * React Bits TiltedCard — 3D mouse-follow tilt with spring physics.
- * Use `imageSrc` for the classic image card, or `children` to wrap any card UI.
+ * 3D mouse-follow tilt with CSS transitions (no Framer Motion).
  */
 export function TiltedCard({
   imageSrc,
@@ -72,25 +81,12 @@ export function TiltedCard({
   className = "",
 }: TiltedCardProps) {
   const ref = useRef<HTMLElement>(null);
-  const reduceMotion = useReducedMotion();
   const isContentMode = Boolean(children);
-
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const rotateX = useSpring(useMotionValue(0), springValues);
-  const rotateY = useSpring(useMotionValue(0), springValues);
-  const scale = useSpring(1, springValues);
-  const opacity = useSpring(0);
-  const rotateFigcaption = useSpring(0, {
-    stiffness: 350,
-    damping: 30,
-    mass: 1,
-  });
-
-  const [lastY, setLastY] = useState(0);
+  const [tilt, setTilt] = useState<TiltState>(idleTilt);
+  const lastYRef = useRef(0);
 
   function handleMouse(e: MouseEvent<HTMLElement>) {
-    if (reduceMotion || !ref.current) return;
+    if (prefersReducedMotion() || !ref.current) return;
 
     const rect = ref.current.getBoundingClientRect();
     const offsetX = e.clientX - rect.left - rect.width / 2;
@@ -98,31 +94,26 @@ export function TiltedCard({
 
     const rotationX = (offsetY / (rect.height / 2)) * -rotateAmplitude;
     const rotationY = (offsetX / (rect.width / 2)) * rotateAmplitude;
+    const velocityY = offsetY - lastYRef.current;
+    lastYRef.current = offsetY;
 
-    rotateX.set(rotationX);
-    rotateY.set(rotationY);
-
-    x.set(e.clientX - rect.left);
-    y.set(e.clientY - rect.top);
-
-    const velocityY = offsetY - lastY;
-    rotateFigcaption.set(-velocityY * 0.6);
-    setLastY(offsetY);
-  }
-
-  function handleMouseEnter() {
-    if (reduceMotion) return;
-    scale.set(scaleOnHover);
-    opacity.set(1);
+    setTilt({
+      rotateX: rotationX,
+      rotateY: rotationY,
+      scale: scaleOnHover,
+      captionX: e.clientX - rect.left,
+      captionY: e.clientY - rect.top,
+      captionOpacity: 1,
+      captionRotate: -velocityY * 0.6,
+    });
   }
 
   function handleMouseLeave() {
-    opacity.set(0);
-    scale.set(1);
-    rotateX.set(0);
-    rotateY.set(0);
-    rotateFigcaption.set(0);
+    setTilt(idleTilt);
+    lastYRef.current = 0;
   }
+
+  const reduceMotion = prefersReducedMotion();
 
   const figureClassName = [
     "tilted-card-figure",
@@ -133,8 +124,21 @@ export function TiltedCard({
     .join(" ");
 
   const innerStyle: CSSProperties = isContentMode
-    ? { width: "100%" }
-    : { width: imageWidth, height: imageHeight };
+    ? {
+        width: "100%",
+        transform: reduceMotion
+          ? undefined
+          : `perspective(800px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg) scale(${tilt.scale})`,
+        transition: "transform 0.2s ease-out",
+      }
+    : {
+        width: imageWidth,
+        height: imageHeight,
+        transform: reduceMotion
+          ? undefined
+          : `perspective(800px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg) scale(${tilt.scale})`,
+        transition: "transform 0.2s ease-out",
+      };
 
   return (
     <figure
@@ -145,7 +149,7 @@ export function TiltedCard({
         width: containerWidth,
       }}
       onMouseMove={handleMouse}
-      onMouseEnter={handleMouseEnter}
+      onMouseEnter={handleMouse}
       onMouseLeave={handleMouseLeave}
     >
       {showMobileWarning ? (
@@ -154,24 +158,19 @@ export function TiltedCard({
         </div>
       ) : null}
 
-      <motion.div
+      <div
         className={[
           "tilted-card-inner",
           isContentMode ? "tilted-card-inner--content" : "",
         ]
           .filter(Boolean)
           .join(" ")}
-        style={{
-          ...innerStyle,
-          rotateX: reduceMotion ? 0 : rotateX,
-          rotateY: reduceMotion ? 0 : rotateY,
-          scale: reduceMotion ? 1 : scale,
-        }}
+        style={innerStyle}
       >
         {children ? (
           <div className="tilted-card-body">{children}</div>
         ) : imageSrc ? (
-          <motion.img
+          <img
             src={imageSrc}
             alt={altText}
             className="tilted-card-img"
@@ -183,25 +182,24 @@ export function TiltedCard({
         ) : null}
 
         {displayOverlayContent && overlayContent ? (
-          <motion.div className="tilted-card-overlay">{overlayContent}</motion.div>
+          <div className="tilted-card-overlay">{overlayContent}</div>
         ) : null}
-      </motion.div>
+      </div>
 
       {showTooltip ? (
-        <motion.figcaption
+        <figcaption
           className="tilted-card-caption"
           style={{
-            x,
-            y,
-            opacity: reduceMotion ? 0 : opacity,
-            rotate: reduceMotion ? 0 : rotateFigcaption,
+            transform: reduceMotion
+              ? undefined
+              : `translate(${tilt.captionX}px, ${tilt.captionY}px) rotate(${tilt.captionRotate}deg)`,
+            opacity: reduceMotion ? 0 : tilt.captionOpacity,
+            transition: "opacity 0.2s ease-out, transform 0.1s linear",
           }}
         >
           {captionText}
-        </motion.figcaption>
+        </figcaption>
       ) : null}
     </figure>
   );
 }
-
-export default TiltedCard;

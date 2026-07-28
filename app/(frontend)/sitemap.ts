@@ -17,6 +17,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     products: products ?? productsFallback,
     services: services ?? servicesFallback,
     caseStudies: caseStudies ?? caseStudiesFallback,
-    vercelEnv: process.env.VERCEL_ENV,
+    appEnv: process.env.APP_ENV,
   });
 }

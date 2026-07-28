@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
+import { CONTACT_CTA } from "@/lib/config/navigation";
 
 type CultureClosingProps = {
   cultureSummary: string;
@@ -17,8 +18,8 @@ export function CultureClosing({ cultureSummary }: CultureClosingProps) {
         </p>
 
         <div className="mt-8">
-          <Button href="/contact" variant="primary">
-            Get in touch
+          <Button href={CONTACT_CTA.href} variant="primary">
+            {CONTACT_CTA.label}
           </Button>
         </div>
       </Container>

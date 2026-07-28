@@ -13,21 +13,6 @@ vi.mock("@/hooks/useHeroScrollBounce", () => ({
   useHeroScrollBounce: (...args: unknown[]) => mockUseHeroScrollBounce(...args),
 }));
 
-vi.mock("framer-motion", () => ({
-  motion: {
-    div: ({
-      children,
-      ...props
-    }: {
-      children: React.ReactNode;
-      className?: string;
-      role?: string;
-      "aria-live"?: string;
-    }) => <div {...props}>{children}</div>,
-  },
-  useReducedMotion: () => false,
-}));
-
 import { HeroScrollHelper } from "./HeroScrollHelper";
 
 describe("HeroScrollHelper", () => {
@@ -46,7 +31,7 @@ describe("HeroScrollHelper", () => {
     expect(screen.getByText("Scroll down")).toBeInTheDocument();
   });
 
-  it("dismiss button present; click calls dismiss", async () => {
+  it("dismiss button present; pointer dismiss calls dismiss once", async () => {
     const user = userEvent.setup();
     render(<HeroScrollHelper />);
 
@@ -57,6 +42,20 @@ describe("HeroScrollHelper", () => {
     expect(dismissButton).toHaveClass("min-h-11", "min-w-11");
 
     await user.click(dismissButton);
+
+    expect(mockDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it("dismiss button handles pointerdown for reliable dismiss", () => {
+    render(<HeroScrollHelper />);
+
+    const dismissButton = screen.getByRole("button", {
+      name: "Dismiss scroll tip",
+    });
+
+    dismissButton.dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true, cancelable: true }),
+    );
 
     expect(mockDismiss).toHaveBeenCalledTimes(1);
   });
@@ -72,23 +71,34 @@ describe("HeroScrollHelper", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("applies sakura token classes", () => {
+  it("uses pointer-events isolation so tip does not steal header logo clicks", () => {
     const { container } = render(<HeroScrollHelper />);
 
     const status = screen.getByRole("status");
     expect(status).toHaveClass(
+      "pointer-events-none",
       "absolute",
       "left-1/2",
       "top-24",
-      "z-20",
+      "z-10",
       "-translate-x-1/2",
     );
+
+    const balloon = container.querySelector(".rounded-2xl");
+    expect(balloon).toHaveClass("pointer-events-auto");
+  });
+
+  it("applies sakura token classes and tip bounce motion", () => {
+    const { container } = render(<HeroScrollHelper />);
 
     const balloon = container.querySelector(".rounded-2xl");
     expect(balloon).toHaveClass(
       "bg-[var(--color-sakura)]",
       "font-sans",
       "text-[var(--text-on-accent)]",
+      "animate-bounce",
+      "hover:animate-none",
+      "focus-within:animate-none",
     );
   });
 

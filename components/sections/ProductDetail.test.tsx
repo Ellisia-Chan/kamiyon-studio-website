@@ -61,6 +61,6 @@ describe("ProductDetail", () => {
 
     expect(
       screen.getByRole("link", { name: "Interested in this project?" })
-    ).toHaveAttribute("href", "/contact");
+    ).toHaveAttribute("href", expect.stringContaining("docs.google.com/forms"));
   });
 });

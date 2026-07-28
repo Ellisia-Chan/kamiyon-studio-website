@@ -6,120 +6,190 @@ Update this file after every meaningful implementation change.
 
 When a task/phase is marked complete:
 
-1. Create `context/completed/YYYY-MM-DD-<slug>.md` with the finished context (goal, decisions, checklist, verification results, session notes).
+1. Create `context/completed/YYYY-MM-DD-<slug>.md` with the finished context.
 2. Add a row/link in [`completed/README.md`](./completed/README.md).
-3. Remove the bulky finished block from this file; leave at most a one-line “Done — see completed/…” pointer if needed.
+3. Remove bulky finished blocks from this file; leave at most a one-line pointer.
 4. Do not delete historical detail — relocate it.
 
 **Historical completed work:** [`completed/README.md`](./completed/README.md)
 
 ---
 
-## Canon Analysis Summary (abbreviated)
+## Current Phase
 
-Full analysis of 43 `docs/` files (July 2026). Detail in source docs and [`project-overview.md`](./project-overview.md).
+**Phase E — Wave 3 verified (2026-07-24):** Staging Worker + hosted Studio confirmed working. **Wave 4 (apex DNS cutover) is next**, run **in parallel** with QA polish streams (see below).
 
-| Area | Key facts |
-| --- | --- |
-| Identity | Kamiyon Studio — Founded 2024 — Biñan City, Laguna — Motto **Create. Play. Inspire.** — 6 team members — Mascot Kami-chan |
-| Site scope | Routes: Home, About, Services, Products, Portfolio, Community, Contact, Blog (stub) — Payload CMS + typed fallbacks — External contact only (no forms) |
-| Nav (shell) | Home, About, Services, Portfolio, Blog, Contact — Products/Community hidden from header/footer (routes preserved) |
-| Products (canon IP) | Eclipse, Vocabu Wildlife Edition, Afterschool Cleanup |
-| Services | 4 categories, 10 service areas (`docs/services/services.md`) |
-| CMS (Payload) | Globals: `site-settings`, `home-page`, `about-page`, `contact-page` — Collections: `team-members`, `service-categories`, `services`, `products`, `case-studies`, `community-items`, `media`, `users` — see `architecture.md` |
-| Design tokens | Sakura `#f97695` (confirmed); Warm Ivory/Charcoal/Soft Gold extracted Phase 9; Deep Indigo TBD — Fonts: Poppins (UI), Montserrat (headlines) |
-| Placeholder gaps | Social URLs + public email **wired 2026-07-10** (operator-provided; not yet in canon docs); no named clients or community events in canon — never fabricate |
+| Surface | URL | Status |
+| --- | --- | --- |
+| Staging site | https://kamiyon-studio-website-staging.limosnerosherwin.workers.dev | Live (Workers Free ~2.2 MiB gzip) |
+| Hosted Studio | https://kamiyon.sanity.studio/ | Live (login + desk OK) |
+| Staging `/studio` | same Worker → redirect | → hosted Studio |
+| Media CDN (staging) | https://media-staging.kamiyonstudio.com | Active |
+| Media CDN (prod) | https://media.kamiyonstudio.com | Active |
+| Production Worker (no domain yet) | https://kamiyon-studio-website.limosnerosherwin.workers.dev | Live + smoked 2026-07-26; awaiting DNS attach |
+| Production site | https://kamiyonstudio.com | Still on prior host until Wave 4 |
 
-**Known conflicts:** README motto "Play. Question. Create." vs canon "Create. Play. Inspire." (website uses canon). `typography.md` / `consultation-process.md` are erroneous duplicates.
+**Source of truth:** [`WEBSITE-ESSENTIAL-CONTEXT.md`](./WEBSITE-ESSENTIAL-CONTEXT.md) · [`DECISIONS.md`](./DECISIONS.md) · [`deploy-runbook.md`](./deploy-runbook.md) · [`QA-Report.md`](./QA-Report.md)
 
 ---
 
-## Current Phase
+## Locked product answers (2026-07-24)
 
-**Home hero scroll helper** — sakura tip + one-shot bounce-to-top on `/`.
+| Topic | Decision |
+| --- | --- |
+| Interim contact CTA | External [Google Form](https://docs.google.com/forms/d/e/1FAIpQLSeIefAWJu5FP9pwljLFz1wSUxU2ybR3--GdylUYUBsGHH0yaw/viewform) (linked button) |
+| QA-001 | Out of app scope — Google Forms confirmation settings |
+| Same-route nav | Smooth-scroll to top / target section |
+| Scroll tip | Keep bounce UX; first scroll must count |
+| QA-008 hamburger | Superseded by kinetic nav (ADR-008) |
+| QA vs Wave 4 | Parallel |
+| T8 (later) | Resend → studio inbox + visitor confirmation; confirm `CONTACT_TO_EMAIL` |
+
+---
+
+## Parallel workstreams (multitask fan-out)
+
+```text
+Batch 1 (now, no shared files):
+  WS0 Context hygiene     ── done 2026-07-24
+  WS1 Hero scroll/hint    ── done 2026-07-24 (QA-002, 009, 010)
+  WS2 Kinetic chrome QA   ── done 2026-07-24 (QA-003 fixed; QA-004 N/R)
+  WS4a Staging ops        ── done 2026-07-24
+  WS6 Blog/Analytics      ── T9 / T14 (optional)
+
+Batch 2 (after Batch 1 + policy locked):
+  WS3 Same-route scroll   ── done 2026-07-24 (QA-005, 006, 007 + Google Form CTA)
+
+Batch 3 (serial ops):
+  WS4b Wave 4 DNS cutover
+
+Batch 4:
+  WS5 T8 Resend form (after inbox confirmed; prod secrets after WS4b)
+  WS7 E2E T15 (after WS3 + WS5)
+
+Batch S (CMS seed — done 2026-07-24):
+  WS8a–f Sanity content seed ── partner schema + builders + CLI + live upsert (ADR-011)
+```
+
+| Stream | Scope | Owns (avoid cross-edits) | Depends on | Status |
+| --- | --- | --- | --- | --- |
+| **WS0** | Context triage | `context/*` | — | **Done** |
+| **WS1** | First scroll counts; × dismiss | `useHeroScrollBounce*`, `HeroScrollHelper*` | — | **Done** — tip dismisses on first intent (no return-to-top); × + pointer-events isolation |
+| **WS2** | Re-QA logo on kinetic; fix if repro | `sterling-gate-kinetic-navigation*`, `SiteHeader*` | Soft: WS1 if tip steals clicks | **Done** — QA-003 fixed (frosted logo chrome on dark hero); QA-004 cannot repro (hits OK; tip stacking owned by WS1) |
+| **WS3** | Same-route → scroll; wire Google Form CTA | nav helpers, footer, contact CTAs, `lib/config/navigation`, channels/fallbacks | WS1/WS2 soft; answers locked | **Done** — same-route `SameRouteLink` + helpers; interim Google Form as primary CTA |
+| **WS4a** | Staging webhook + Studio API origin / R2 smoke | CF/Sanity ops, `deploy-runbook` | — | **Done** |
+| **WS4b** | Apex/www → prod Worker; pause Vercel | DNS + prod env | WS4a green | **Prod Worker live + smoked** 2026-07-26 on `kamiyon-studio-website.limosnerosherwin.workers.dev`; remaining work is operator dashboard steps (DNS attach, Sanity CORS/webhook, Vercel pause) |
+| **WS5** | T8 Resend native form | contact API + UI | Inbox decision; prod after WS4b | Later |
+| **WS6** | T9 blog UI / T14 CF Analytics | blog routes, analytics snippet | — | Optional parallel |
+| **WS7** | T15 E2E expansion | `e2e/*` | WS3 + WS5 | Later |
+| **WS8** | Sanity seed (fallbacks → dataset) | `scripts/sanity/seed/*`, `partner` schema, `lib/cms` partner plumbing | — | **Done** — 42 docs on `kamiyon` (ADR-011) |
+
+**Conflict edge:** Hero tip `z-20` vs header logo clicks — WS1 owns tip stacking; WS2 re-tests logo after.
+
+**WS4b handoff:** Production Worker created and verified 2026-07-26 at https://kamiyon-studio-website.limosnerosherwin.workers.dev (pages, `/studio` redirect, hashed OG image, apex `robots.txt`/canonicals, `401` on unauthenticated `/api/revalidate` + `/api/media/upload`, prod media CDN). Worker secrets are set. All that is left is the **human** dashboard work: attach `kamiyonstudio.com` + `www`, add the production Sanity CORS origin and revalidate webhook, redeploy the Studio at the apex origin, then pause Vercel after 24–48 h green. Operator-facing steps: [`dns-cutover-guide.md`](./dns-cutover-guide.md); engineer sequence and smoke results: [`deploy-runbook.md`](./deploy-runbook.md).
+
+---
 
 ## Current Goal
 
-Ship a small upper-hero “Scroll down” balloon that bounce-returns once on user scroll, then releases normal scrolling (Lenis + LineSidebar intact).
+1. Batch 1 polish streams done (WS0/WS1/WS2/WS4a). Batch 2 WS3 done.  
+2. Optional: WS6 (blog UI / CF Analytics) in parallel.  
+3. Next serial: **WS4b** apex DNS cutover → then WS5/WS7.
 
-## In Progress
+---
 
-- Done this session: `useHeroScrollBounce` (Lenis-aware, user-gesture gated, reduced-motion skip, dismiss + cleanup) + `HeroScrollHelper` in `HeroOpening`; unit tests green
-- Done this session: Motion blur on scroll reveals (`useFadeIn` / `useReveal` / `useStagger` + `AnimatedSection`) — soft enter blur + velocity blur; `lib/motion/motion-blur` + `attach-velocity-blur`; reduced-motion / coarse-pointer safe
-- Done this session: `LineSidebar` + `HomeLineSidebar` on `/` (desktop-only fixed left rail); `lib/home/section-nav` anchors; section `id`s + `scroll-mt`; scroll-spy via `IntersectionObserver`
-- Done this session: Restored `PartnersMarquee` as its own home section (reverted brief hero-overlay experiment)
-- Done prior (committed): CardNav closed/open chrome; HeroOpening brand-first; WordPullUp / ScrollStack / CardNav / parallax stack
+## Recently completed (2026-07-24)
+
+- **WS8 Sanity content seed** — Partner schema + `pnpm sanity:seed` (42 docs); fallbacks kept; `getCmsImageUrl` allowlists media CDN. Archive: [`completed/2026-07-24-sanity-content-seed.md`](./completed/2026-07-24-sanity-content-seed.md) (ADR-011).
+- **WS3 same-route scroll + Google Form CTA** — Shared `lib/navigation/same-route-scroll` + `SameRouteLink` (header/footer/CTAs); interim primary CTA → Google Form (`INTERIM_CONTACT_FORM_URL` / `CONTACT_CTA`); `/contact` nav page kept for channels. Resolves QA-005/006/007 (external Form skips same-route scroll).
+- **WS2 kinetic chrome QA** — QA-003: frosted logo chrome so ink wordmark readable on dark hero; QA-004: cannot repro as hit-target (logo hits OK; tip stacking = WS1). No new menu freezes under toggle stress.
+- **WS4a staging ops** — Sanity webhook → staging `/api/revalidate` (Bearer); Studio redeploy with `SANITY_STUDIO_API_ORIGIN` + upload secret; R2 API smoke OK. Details: [`deploy-runbook.md`](./deploy-runbook.md).
+- **WS0 context hygiene** — QA triage, workstreams, contact/Studio doc alignment (ADR-010).
+- **Hosted Studio live** — `pnpm sanity:deploy` → https://kamiyon.sanity.studio/ (app id in `sanity.cli.ts`).
+- **Studio env bake-in (ADR-009)** — static `SANITY_STUDIO_*` reads + defaults.
+- **Sanity CORS** — credentials for Studio + staging Worker.
+- **Kinetic nav (Track G / ADR-008)** — `SterlingGateKineticNavigation` in `SiteHeader`.
+- **OpenNext staging** — R2 bindings, staging vars, secrets set.
+- **Build fixes** — `next build --webpack` + `*.ttf.bin` loader; OG routes on node runtime.
+
+---
+
+## Completed earlier
+
+- Phase C CMS swap — [`completed/2026-07-23-phase-c-sanity-cms-swap.md`](./completed/2026-07-23-phase-c-sanity-cms-swap.md)
+- Cinematic footer — [`completed/2026-07-23-cinematic-footer.md`](./completed/2026-07-23-cinematic-footer.md)
+- Phase B Studio schemas; ADR-005 hygiene; ADR-007 hosted Studio (not embedded)
+
+---
 
 ## Next Up (resume here)
 
-1. Visual QA: hero scroll helper on `/` (desktop + mobile; Lenis on/off; reduced motion; dismiss; LineSidebar after bounce)
-2. Visual QA: motion blur on `/` and `/motion-lab` (desktop scroll speed → soft blur; stops when idle; reduced motion / touch unchanged)
-3. Visual QA: LineSidebar on `/` (desktop rail; hidden below `lg`; click → smooth scroll; scroll-spy; reduced motion; Lenis on/off)
-4. Visual QA: partners as standalone section + full home scroll path Hero → Contact
-5. Visual QA: header closed/open + simplified hero on `/` and `/about` (desktop + mobile; reduced motion; Escape/focus)
-6. Visual QA: WordPullUp + body fade on `/`; services stack (Lenis on/off + reduced motion)
-7. Document LineSidebar in `ui-context.md` when phase closes
-8. Roll WordPullUp + fade-in standard to About / Services / Portfolio / Contact page headings
-9. Operator: set `DATABASE_URL` + `PAYLOAD_SECRET` in `.env.local`, run `npm run dev`, open `/admin`, create first user, publish content
-10. Optional: draft/preview after cutover; Payload schema sign-off; production `NEXT_PUBLIC_SITE_URL` at deploy
-11. Optional: dual-model a11y/UX polish on motion stack
-12. Optional: remove unused `lib/home/opening-items` if nothing else adopts it
+### Batch 1 (parallel)
 
-**Done (pointers only):**
+1. ~~**WS1** — Hero scroll bounce: first intent must scroll; stabilize tip × (QA-002/009/010)~~ **Done**
+2. ~~**WS2** — Re-QA logo disappear/click~~ **Done** (QA-003 frosted chrome; QA-004 N/R as hit bug)
+3. ~~**WS4a** — Staging webhook + Studio R2 origin + API smoke~~ **Done** (see deploy-runbook)
+4. **WS6 (optional)** — Blog UI (T9) / ~~CF Analytics (T14)~~ **T14 done 2026-07-26** — beacon + dev/no-token off switch (ADR-012); operator must set `NEXT_PUBLIC_CF_WEB_ANALYTICS_TOKEN_{STAGING,PRODUCTION}` per [`analytics-setup.md`](./analytics-setup.md)
 
-- GSAP close-out (About + delivery note) 2026-07-11 — [`completed/2026-07-11-gsap-animation-delivery.md`](./completed/2026-07-11-gsap-animation-delivery.md)
-- GSAP foundation + Home adoption 2026-07-11 — [`completed/2026-07-11-gsap-animation-foundation.md`](./completed/2026-07-11-gsap-animation-foundation.md)
-- Sanity → Payload Phases 0–6 — [`completed/2026-07-11-payload-migration-phases-0-6.md`](./completed/2026-07-11-payload-migration-phases-0-6.md)
-- Homepage redesign 2026-07-11 — [`completed/2026-07-11-homepage-redesign.md`](./completed/2026-07-11-homepage-redesign.md)
-- v1 website Phase 0–10 — [`completed/2026-07-09-v1-website-phases-0-10.md`](./completed/2026-07-09-v1-website-phases-0-10.md)
-- Sanity schema plan (superseded) — [`completed/2026-07-10-sanity-schema-plan-superseded.md`](./completed/2026-07-10-sanity-schema-plan-superseded.md)
+### Batch 2
+
+5. ~~**WS3** — Same-route → scroll top/section; wire Google Form as interim primary contact CTA~~ **Done**
+
+### Batch 3–4
+
+6. **WS4b** — ~~Prod Worker~~ **deployed + smoked 2026-07-26**; remaining: attach `kamiyonstudio.com` + `www`, prod Sanity CORS + webhook, Studio redeploy at apex origin, pause Vercel — all need operator dashboard access (see [`deploy-runbook.md`](./deploy-runbook.md) “WS4b — Production cutover”, operator steps in [`dns-cutover-guide.md`](./dns-cutover-guide.md))
+7. **WS5** — T8 Resend form (after `CONTACT_TO_EMAIL` confirmed)
+8. **WS7** — Expanded E2E (T15); retire CardNav-era smoke comments
+9. **GitHub Actions** — Confirm `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` for `staging`/`main`
+
+**Done (pointers):** see [`completed/README.md`](./completed/README.md)
 
 ---
 
 ## Open Questions
 
-- [x] **CMS choice** — **Payload CMS 3** (Postgres); Sanity removed Phase 4
-- [ ] **Payload schema sign-off** — Confirm globals/collections in `payload.config.ts` accepted as v1 canon
-- [x] **Facebook page URL** — **answered 2026-07-10:** `https://www.facebook.com/kamiyonstudio`
-- [x] **LinkedIn URL** — **answered 2026-07-10:** public `https://www.linkedin.com/company/105066188/`
-- [x] **Public email address** — **answered 2026-07-10:** `kamiyonstudio@gmail.com`
-- [x] **Deployment target** — **answered 2026-07-10:** Vercel; `NEXT_PUBLIC_SITE_URL` still TBD at deploy time
-- [ ] **Deep Indigo hex value** — not in `brand-kit.png`; do not invent
-- [ ] **`/news` route** — deferred/skipped for v1 (Vision item)
-- [ ] **Press Kit `/pres`** — deferred post-v1
-- [ ] **Portfolio taxonomy divergence** — canon `caseStudy` model; discipline filters need schema change
-- [ ] **Contact policy** — external links only; no lead-capture form for v1
-- [ ] **Beaufort for LoL license** — confirm before production use
-- [ ] **Product development status** — per-product status defaults to `tbd`
-- [ ] **README motto conflict** — update canon README to match Create. Play. Inspire.?
-- [ ] **Draft/preview** — deferred post-migration
+Only genuinely pending decisions live here. Decided-but-unscheduled work is under **Deferred** below; settled items are under **Resolved**.
+
+- [ ] **Resend from-address / `CONTACT_TO_EMAIL`** — Plan locked 2026-07-26: send as `Kamiyon Studio <noreply@send.kamiyonstudio.com>` (dedicated sending subdomain keeps transactional reputation off the apex); `CONTACT_TO_EMAIL=kamiyonstudio@gmail.com` (already `PUBLIC_EMAIL`); add Cloudflare Email Routing so `hello@kamiyonstudio.com` forwards to that Gmail. Never send as `gmail.com` — Resend requires a verified domain and it fails DMARC.  
+  Remaining before WS5: verify the subdomain in Resend (DKIM + SPF), add apex DMARC at `p=none` with `rua`, add `CONTACT_FROM_EMAIL` to `.env.example`, keep `RESEND_API_KEY` a Worker **secret**. Reply-to = visitor address on the studio notification, `PUBLIC_EMAIL` on the visitor confirmation.  
+  **Sequencing:** zone is already on Cloudflare and currently has **no MX / SPF / DMARC**, so this is independent of WS4b and nothing conflicts. Domain verification is the long-lead step — start it **before** WS4b.
+- [ ] **Retire Google Form when T8 ships?** — Recommendation: no hard cutover. Native form becomes primary; keep the Form as a secondary fallback until end-to-end delivery is verified (studio inbox + visitor confirmation + spam placement) over ~2 weeks or several genuine submissions, since the native path depends on Resend being up. Retirement is not just deleting a constant: `INTERIM_CONTACT_FORM_URL` is referenced in `lib/config/navigation.ts`, `lib/cms/fallbacks/{home,site-settings}.ts`, `lib/site-settings/shell-props.ts` and ~6 test files, and seeded Sanity docs may still carry it in `ctaHref` (see `QA-Report.md`) — budget a dataset patch/reseed in WS5.
 
 ---
 
+## Deferred — decided, not scheduled
+
+| Item | Decision | Revisit trigger |
+| --- | --- | --- |
+| **Press Kit** (`/pres`) | Vision item per [`ai-workflow-rules.md`](./ai-workflow-rules.md) — out of v1. Interim need is served manually: brand assets in `docs/assets/` + `PUBLIC_EMAIL`. | First real press inquiry, or first product launch |
+| **Portfolio taxonomy filters** | Approach locked: client-side chips over the existing `caseStudy.industry` field, reusing the `CommunityFeed` + `lib/community/filter-by-type` pattern (chips derived only from values present). No new routes, no schema change, no CMS migration. | ≥6 real (non-placeholder) case studies across ≥3 industries |
+
+Portfolio currently holds **1** case study, `isPlaceholder: true` — chips over a single placeholder card would read as broken, which is why filters wait on content rather than engineering.
+
+---
+
+## Resolved (formerly open)
+
+- [x] **`/news` route** — **Won't build.** `/blog` (T9) is the announcements surface; its own metadata already reads "News and updates from Kamiyon Studio." `/news` originated in the superseded `website-plan/` v2.0 IA and never shipped, so no redirect is needed.
+- [x] **README motto conflict** — Fixed 2026-07-26: `docs/README.md` now reads **Create. Play. Inspire.**, matching `docs/company/overview.md`, `docs/company/mission-vision.md`, the branding docs, root `README.md`, and `SITE_MOTTO`. No code impact (nothing read the old string).
+- [x] **R2 public CDN hostname** — `media.kamiyonstudio.com` / `media-staging.kamiyonstudio.com` (active)
+- [x] **Hosted Studio hostname** — `kamiyon.sanity.studio` live; env bake-in fixed (ADR-009)
+- [x] **Interim contact** — Google Form URL (wired in repo; QA-001 = Forms settings)
+
+---
+
+## Recent polish (2026-07-26)
+
+- **Adaptive nav contrast (ADR-015):** `useNavTheme` + `[data-nav-theme]` on homepage bands; transparent logo/button chrome; 3-line burger → X; menu open forces light ink; pink logo mark unchanged.
+- **Multilayer parallax (ADR-014):** Osmo-style `ParallaxScrolling` UI on `/motion-lab` only — native scroll + GSAP scrub (no Lenis); local `/assets/*` layers; co-located CSS; Motion Lab footer/hero copy updated off Lenis.
+- **Pink chrome glow CTAs (ADR-013):** `--border-default` → sakura tint; new `GlowingShadow` shell on primary `Button` only; kinetic nav toggle icon-only (frosted chrome removed in ADR-015).
+
+## Recent polish (2026-07-24)
+
+- **Partner logos (Sanity):** Home marquee renders uploaded `partner.logo` (R2) as images only — no links/CTAs. `websiteUrl` removed from partner schema. Studio: edit Partner docs → upload Logo → set Label/alt → uncheck Placeholder. Redeploy Studio after schema change (`pnpm sanity:deploy`).
+- **Display headings:** CinematicFooter glow/size treatment (`footer-text-glow` + `text-5xl`/`md:text-8xl`/`font-black`) is now the default for `WordPullUp` section titles (home: Projects, Services, Contact).
+- **Site cross-hatch:** Subtle fixed `.site-bg-grid` overlay (1% lines; footer keeps its own 3% masked grid).
+
 ## Architecture Decisions (active)
 
-| Decision | Choice | Rationale |
-| --- | --- | --- |
-| Motto | Create. Play. Inspire. | User confirmed |
-| Contact v1 | Facebook + LinkedIn + mailto only | No forms / visitor auth |
-| Content strategy | Payload CMS + typed fallbacks | Empty CMS OK |
-| CMS (current) | Payload 3 + Postgres | In-repo `/admin`; Sanity deleted |
-| Data fetching | SSG + ISR (1h `unstable_cache`) | Marketing performance |
-| Rich text | Lexical → `PortableTextBlock[]` adapter | Matches `PortableText.tsx` |
-| Images | Payload media `url` + `/assets/**` localPatterns | No Sanity CDN |
-| Access control | Public read / authenticated write; Users auth-only | Phase 6 hardening |
-| Secret validation | `PAYLOAD_SECRET` required if `DATABASE_URL` set | Fail closed when CMS enabled |
-| Unmatched public URLs | `(frontend)/[...notFound]` → branded `not-found` | Dual root layouts (frontend/payload) |
-| Shell nav | Home, About, Services, Portfolio, Blog, Contact | Products/Community routes kept, hidden from nav |
-| Home composition | HeroOpening (brand + motto) → Partners → Projects → ServicesStack → Contact | 2026-07-15: list removed; partners overlay trial reverted |
-| Home section nav | React Bits LineSidebar (`HomeLineSidebar`); desktop-only (`lg+`) fixed left rail; `HOME_SECTION_NAV` + scroll-spy | 2026-07-15 |
-| Home hero scroll tip | `HeroScrollHelper` + `useHeroScrollBounce`; user-gesture gated one-shot return-to-top; reduced-motion skips hijack | 2026-07-15 |
-| Home services UI | React Bits ScrollStack (`useWindowScroll`); reuse site Lenis, no nested root Lenis | Avoid dual smooth-scroll instances |
-| Shell header | CardNav via SiteHeader — closed: logo+burger; open: top-right vertical About/Work/Contact; transparent on `/` | 2026-07-15 restyle |
-| Contact URLs | `lib/contact/channels.ts` | Single source for fallbacks/nav/JSON-LD |
-| Motion stack | GSAP + ScrollTrigger + Lenis; Framer Motion micro only | Frontend layout providers; Payload admin excluded |
-| Motion demo | `/motion-lab` (noIndex, hidden from nav) | Architecture showcase before marketing adoption |
-| Typography motion | Headings: `WordPullUp` (scroll); body: `AnimatedSection` fade + motion blur; hero brand: `SplitText` | Differentiated entrance; reduced-motion passthrough |
-| Scroll motion blur | Enter blur → sharp; velocity blur while on-screen (`lib/motion/motion-blur`); fine pointer only | Realism on desktop scroll; opt-out via `motionBlur={false}` |
-
-Historical decisions and session notes live in [`completed/README.md`](./completed/README.md).
+See [`DECISIONS.md`](./DECISIONS.md) for locked stack and cleanup ADRs (incl. ADR-010 QA / contact interim).

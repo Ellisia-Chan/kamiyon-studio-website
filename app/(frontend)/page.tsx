@@ -16,11 +16,14 @@ import {
   resolveWithFallback,
   serviceCategoriesFallback,
 } from "@/lib/cms/fallbacks";
+import { mapPartnerToMarqueeItem } from "@/lib/cms/mappers";
 import {
   getCaseStudies,
   getHomePage,
+  getPartners,
   getServiceCategories,
 } from "@/lib/cms/queries";
+import { PARTNER_PLACEHOLDERS } from "@/lib/home/partner-placeholders";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import type {
   HomeCtaBanner,
@@ -29,10 +32,11 @@ import type {
 } from "@/lib/cms/types";
 
 async function getHomePageContent() {
-  const [home, caseStudies, serviceCategories] = await Promise.all([
+  const [home, caseStudies, serviceCategories, partners] = await Promise.all([
     getHomePage(),
     getCaseStudies(),
     getServiceCategories(),
+    getPartners(),
   ]);
 
   return {
@@ -41,6 +45,10 @@ async function getHomePageContent() {
     serviceCategories: resolveWithFallback(
       serviceCategories,
       serviceCategoriesFallback
+    ),
+    partners: resolveWithFallback(
+      partners?.map(mapPartnerToMarqueeItem) ?? null,
+      PARTNER_PLACEHOLDERS
     ),
   };
 }
@@ -70,7 +78,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const { home, caseStudies, serviceCategories } =
+  const { home, caseStudies, serviceCategories, partners } =
     await getHomePageContent();
 
   const hero = home.blocks.find((block) => block._type === "hero") as
@@ -92,7 +100,7 @@ export default async function Home() {
       {/* Brand-first opening uses its own GSAP entrance; section titles use WordPullUp. */}
       {hero ? <Hero hero={hero} /> : null}
       <AnimatedSection as="div" distance={28}>
-        <PartnersMarquee eyebrow="Partners" />
+        <PartnersMarquee eyebrow="Partners" partners={partners} />
       </AnimatedSection>
       {/* ProjectsBento / HomeContact animate heading (WordPullUp) + body fade in-section. */}
       <ProjectsBento caseStudies={caseStudies} />

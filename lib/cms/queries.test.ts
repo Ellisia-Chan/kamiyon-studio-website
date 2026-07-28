@@ -1,105 +1,19 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-const findGlobalMock = vi.fn();
-const findMock = vi.fn();
-const getPayloadClientMock = vi.fn();
+const safeFetchMock = vi.fn();
 
-vi.mock("next/cache", () => ({
-  unstable_cache: (loader: () => Promise<unknown>) => loader,
+vi.mock("./fetch", () => ({
+  safeSanityFetch: (...args: unknown[]) => safeFetchMock(...args),
 }));
 
-vi.mock("./client", () => ({
-  getPayloadClient: getPayloadClientMock,
-}));
-
-describe("CMS query functions", () => {
+describe("CMS query functions (Sanity + fallbacks)", () => {
   afterEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
   });
 
-  it("returns null without calling Payload when CMS is not configured", async () => {
-    getPayloadClientMock.mockResolvedValue(null);
-
-    const { getHomePage } = await import("./queries");
-    const result = await getHomePage();
-
-    expect(result).toBeNull();
-    expect(findGlobalMock).not.toHaveBeenCalled();
-  });
-
-  it("returns the typed CMS result when Payload resolves successfully", async () => {
-    getPayloadClientMock.mockResolvedValue({
-      findGlobal: findGlobalMock,
-      find: findMock,
-    });
-    findGlobalMock.mockResolvedValueOnce({
-      title: "Home",
-      blocks: [
-        {
-          blockType: "hero",
-          headline: "Create. Play. Inspire.",
-          subheadline: "Studio",
-          ctaLabel: "Contact",
-          ctaHref: "/contact",
-        },
-      ],
-      seo: { title: "Home", description: "Home page" },
-    });
-
-    const { getHomePage } = await import("./queries");
-    const result = await getHomePage();
-
-    expect(result?._type).toBe("homePage");
-    expect(result?.blocks[0]?._type).toBe("hero");
-    expect(findGlobalMock).toHaveBeenCalledWith({
-      slug: "home-page",
-      depth: 2,
-    });
-  });
-
-  it("passes the slug through to Payload for slug-based lookups", async () => {
-    getPayloadClientMock.mockResolvedValue({
-      findGlobal: findGlobalMock,
-      find: findMock,
-    });
-    findMock.mockResolvedValueOnce({ docs: [] });
-
-    const { getServiceBySlug } = await import("./queries");
-    await getServiceBySlug("game-development");
-
-    expect(findMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        collection: "services",
-        where: {
-          slug: {
-            equals: "game-development",
-          },
-        },
-      })
-    );
-  });
-
-  it("swallows CMS fetch errors and returns null instead of throwing", async () => {
-    getPayloadClientMock.mockResolvedValue({
-      findGlobal: findGlobalMock,
-      find: findMock,
-    });
-    findMock.mockRejectedValueOnce(new Error("database unavailable"));
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
-
-    const { getCaseStudies } = await import("./queries");
-    const result = await getCaseStudies();
-
-    expect(result).toBeNull();
-    expect(consoleErrorSpy).toHaveBeenCalled();
-
-    consoleErrorSpy.mockRestore();
-  });
-
-  it("resolves every collection query function to null when unconfigured (never throws)", async () => {
-    getPayloadClientMock.mockResolvedValue(null);
-
+  it("returns null for every getter when Sanity yields nothing", async () => {
+    safeFetchMock.mockResolvedValue(null);
     const queries = await import("./queries");
 
     await expect(queries.getSiteSettings()).resolves.toBeNull();
@@ -114,19 +28,72 @@ describe("CMS query functions", () => {
     await expect(queries.getCaseStudies()).resolves.toBeNull();
     await expect(queries.getCaseStudyBySlug("x")).resolves.toBeNull();
     await expect(queries.getCommunityItems()).resolves.toBeNull();
+    await expect(queries.getPartners()).resolves.toBeNull();
     await expect(queries.getContactPage()).resolves.toBeNull();
+    await expect(queries.getPosts()).resolves.toBeNull();
+    await expect(queries.getPostBySlug("x")).resolves.toBeNull();
   });
 
-  it("returns null for empty collections so typed fallbacks still apply", async () => {
-    getPayloadClientMock.mockResolvedValue({
-      findGlobal: findGlobalMock,
-      find: findMock,
+  it("maps configured Sanity documents through getters", async () => {
+    safeFetchMock.mockImplementation(async (query: string) => {
+      if (query.includes('_type == "siteSettings"')) {
+        return {
+          siteName: "Kamiyon Studio",
+          tagline: "Create. Play. Inspire.",
+          socialLinks: [],
+          defaultSeo: { title: "Kamiyon", description: "Studio" },
+          globalCtas: [],
+        };
+      }
+      if (query.includes('_type == "service" && slug.current')) {
+        return {
+          title: "Game Development",
+          slug: { current: "game-development" },
+          categorySlug: "games",
+          summary: "Summary",
+          body: [],
+          outcomes: [],
+          relatedIndustries: [],
+          order: 1,
+          isPlaceholder: true,
+          seo: { title: "Game Development", description: "Summary" },
+        };
+      }
+      if (query.includes('_type == "teamMember"')) {
+        return [{ name: "Ada", role: "Founder", bio: "Bio", order: 1, isPlaceholder: false }];
+      }
+      if (query.includes('_type == "partner"')) {
+        return [
+          {
+            _id: "partner-1",
+            label: "Partner placeholder",
+            slug: { current: "partner-1" },
+            order: 1,
+            isPlaceholder: true,
+          },
+        ];
+      }
+      return null;
     });
-    findMock.mockResolvedValueOnce({ docs: [] });
 
-    const { getProducts } = await import("./queries");
-    const result = await getProducts();
+    const queries = await import("./queries");
 
-    expect(result).toBeNull();
+    await expect(queries.getSiteSettings()).resolves.toMatchObject({
+      siteName: "Kamiyon Studio",
+    });
+    await expect(queries.getServiceBySlug("game-development")).resolves.toMatchObject({
+      slug: { current: "game-development" },
+      categorySlug: "games",
+    });
+    await expect(queries.getTeamMembers()).resolves.toEqual([
+      expect.objectContaining({ name: "Ada", role: "Founder" }),
+    ]);
+    await expect(queries.getPartners()).resolves.toEqual([
+      expect.objectContaining({
+        id: "partner-1",
+        label: "Partner placeholder",
+        slug: { current: "partner-1" },
+      }),
+    ]);
   });
 });

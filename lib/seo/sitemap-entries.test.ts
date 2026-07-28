@@ -37,19 +37,19 @@ describe("buildPublicSitemapEntries", () => {
         products: [{ slug: { current: "should-not-appear" }, seo: {} }],
         services: [],
         caseStudies: [],
-        vercelEnv: "preview",
+        appEnv: "preview",
       })
     ).toEqual([]);
   });
 
-  it("returns an empty list for development VERCEL_ENV with production SITE_URL", () => {
+  it("returns an empty list for development APP_ENV with production SITE_URL", () => {
     expect(
       buildPublicSitemapEntries({
         siteUrl: "https://kamiyonstudio.com",
         products: [],
         services: [],
         caseStudies: [],
-        vercelEnv: "development",
+        appEnv: "development",
       })
     ).toEqual([]);
   });
@@ -60,7 +60,7 @@ describe("buildPublicSitemapEntries", () => {
       products: [],
       services: [],
       caseStudies: [],
-      vercelEnv: "production",
+      appEnv: "production",
     });
     const urls = entries.map((entry) => entry.url);
 
@@ -83,7 +83,7 @@ describe("buildPublicSitemapEntries", () => {
     );
   });
 
-  it("includes entries when VERCEL_ENV is unset and SITE_URL is canonical (local)", () => {
+  it("includes entries when APP_ENV is unset and SITE_URL is canonical (local)", () => {
     const entries = buildPublicSitemapEntries({
       siteUrl,
       products: [],

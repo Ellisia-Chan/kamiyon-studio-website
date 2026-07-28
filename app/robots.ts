@@ -8,5 +8,5 @@ import { SITE_URL } from "@/lib/seo/site-url";
  * `robots.ts` inside route groups — unlike `sitemap.ts`.
  */
 export default function robots(): MetadataRoute.Robots {
-  return buildRobotsPolicy(SITE_URL, process.env.VERCEL_ENV);
+  return buildRobotsPolicy(SITE_URL, process.env.APP_ENV);
 }

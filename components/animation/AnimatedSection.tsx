@@ -17,8 +17,6 @@ type AnimatedSectionProps = {
   distance?: number;
   once?: boolean;
   disabled?: boolean;
-  /** Soft enter blur + velocity blur while scrolling past (default on). */
-  motionBlur?: boolean;
 };
 
 export function AnimatedSection({
@@ -31,7 +29,6 @@ export function AnimatedSection({
   distance = MOTION_DISTANCE.fadeY,
   once = true,
   disabled = false,
-  motionBlur = true,
 }: AnimatedSectionProps) {
   const ref = useFadeIn<HTMLElement>({
     delay,
@@ -39,7 +36,6 @@ export function AnimatedSection({
     y: distance,
     once,
     disabled,
-    motionBlur,
   });
 
   return (

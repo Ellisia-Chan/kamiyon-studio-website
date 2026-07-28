@@ -1,18 +1,13 @@
 import { Badge } from "@/components/ui/Badge";
+import {
+  SocialPlatformIcon,
+  SOCIAL_PLATFORM_LABELS,
+} from "@/components/ui/social-platform-icons";
 import { TiltedCard, marketingCardTiltProps } from "@/components/ui/TiltedCard";
 import type { ContactChannel } from "@/lib/cms/types";
 
-const CHANNEL_LABELS: Record<ContactChannel["type"], string> = {
-  facebook: "Facebook",
-  linkedin: "LinkedIn",
-  email: "Email",
-};
-
-const CHANNEL_GLYPHS: Record<ContactChannel["type"], string> = {
-  facebook: "f",
-  linkedin: "in",
-  email: "@",
-};
+const CHANNEL_LABELS: Record<ContactChannel["type"], string> =
+  SOCIAL_PLATFORM_LABELS;
 
 type ContactCardProps = {
   channel: ContactChannel;
@@ -36,9 +31,9 @@ export function ContactCard({ channel }: ContactCardProps) {
     <>
       <span
         aria-hidden="true"
-        className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--bg-accent)] text-lg font-bold text-sakura-ink"
+        className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--bg-accent)] text-sakura-ink"
       >
-        {CHANNEL_GLYPHS[channel.type]}
+        <SocialPlatformIcon platform={channel.type} size={22} />
       </span>
       <span className="font-display text-base font-semibold text-[var(--text-primary)]">
         {channel.label || CHANNEL_LABELS[channel.type]}

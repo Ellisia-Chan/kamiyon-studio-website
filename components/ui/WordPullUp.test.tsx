@@ -1,41 +1,18 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("framer-motion", () => {
-  const Passthrough = ({
-    children,
-    ...props
-  }: {
-    children?: React.ReactNode;
-    className?: string;
-    id?: string;
-  }) => (
-    <span {...props}>{children}</span>
-  );
+vi.mock("@gsap/react", () => ({
+  useGSAP: () => undefined,
+}));
 
-  return {
-    motion: {
-      h1: ({
-        children,
-        ...props
-      }: {
-        children?: React.ReactNode;
-        className?: string;
-        id?: string;
-      }) => <h1 {...props}>{children}</h1>,
-      h2: ({
-        children,
-        ...props
-      }: {
-        children?: React.ReactNode;
-        className?: string;
-        id?: string;
-      }) => <h2 {...props}>{children}</h2>,
-      span: Passthrough,
-    },
-    useReducedMotion: () => false,
-  };
-});
+vi.mock("@/lib/gsap", () => ({
+  gsap: { set: vi.fn(), to: vi.fn(() => ({ play: vi.fn() })) },
+  ScrollTrigger: { create: vi.fn() },
+}));
+
+vi.mock("@/lib/motion/reduced-motion", () => ({
+  prefersReducedMotion: () => true,
+}));
 
 import { WordPullUp } from "./WordPullUp";
 
@@ -45,7 +22,7 @@ describe("WordPullUp", () => {
       <WordPullUp
         as="h2"
         words="Recent Projects"
-        className="text-2xl"
+        className="mt-3"
       />,
     );
 
@@ -54,7 +31,19 @@ describe("WordPullUp", () => {
       name: /Recent Projects/,
     });
     expect(heading).toBeInTheDocument();
-    expect(heading).toHaveClass("text-2xl");
+    expect(heading).toHaveClass("mt-3");
+  });
+
+  it("applies the cinematic display heading treatment by default", () => {
+    render(<WordPullUp as="h2" words="Recent Projects" />);
+
+    const heading = screen.getByRole("heading", { level: 2 });
+    expect(heading).toHaveClass("footer-text-glow");
+    expect(heading).toHaveClass("font-display");
+    expect(heading).toHaveClass("text-5xl");
+    expect(heading).toHaveClass("font-black");
+    expect(heading).toHaveClass("tracking-tighter");
+    expect(heading).toHaveClass("md:text-8xl");
   });
 
   it("forwards id for aria-labelledby targets", () => {
@@ -66,12 +55,10 @@ describe("WordPullUp", () => {
     );
   });
 
-  it("preserves empty-word slots so double spaces do not collapse", () => {
+  it("preserves word spacing in heading text", () => {
     render(<WordPullUp as="h1" words="Create  Play" startOnView={false} />);
 
     const heading = screen.getByRole("heading", { level: 1 });
-    expect(heading.textContent).toContain("Create");
-    expect(heading.textContent).toContain("Play");
-    expect(heading.querySelectorAll(":scope > span")).toHaveLength(3);
+    expect(heading.textContent).toMatch(/Create\s+Play/);
   });
 });

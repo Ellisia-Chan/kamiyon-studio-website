@@ -56,8 +56,9 @@ describe("HomeContact", () => {
     expect(screen.getByText(defaultProps.body)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: defaultProps.ctaLabel })).toHaveAttribute(
       "href",
-      "/contact"
+      defaultProps.ctaHref,
     );
+    expect(defaultProps.ctaHref).toContain("docs.google.com/forms");
   });
 
   it("does not render a contact form or input fields", () => {

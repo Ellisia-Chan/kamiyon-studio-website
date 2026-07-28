@@ -35,12 +35,11 @@ describe("ServiceSidebar", () => {
     expect(screen.queryByText("Related industries")).not.toBeInTheDocument();
   });
 
-  it("always renders the contact CTA linking to /contact", () => {
+  it("always renders the interim Google Form contact CTA", () => {
     render(<ServiceSidebar service={baseService} />);
 
-    expect(screen.getByRole("link", { name: "Discuss this service" })).toHaveAttribute(
-      "href",
-      "/contact"
-    );
+    const cta = screen.getByRole("link", { name: "Discuss this service" });
+    expect(cta).toHaveAttribute("href", expect.stringContaining("docs.google.com/forms"));
+    expect(cta).toHaveAttribute("target", "_blank");
   });
 });

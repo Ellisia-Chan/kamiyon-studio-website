@@ -81,10 +81,12 @@ export function LineSidebar({
   const activeRef = useRef(activeIndex);
   const smoothingRef = useRef(smoothing);
 
-  activeRef.current = activeIndex;
-  smoothingRef.current = smoothing;
+  useEffect(() => {
+    activeRef.current = activeIndex;
+    smoothingRef.current = smoothing;
+  }, [activeIndex, smoothing]);
 
-  const runFrame = useCallback((now: number) => {
+  const runFrame = useCallback(function runFrame(now: number) {
     const dt = Math.min((now - lastRef.current) / 1000, 0.05);
     lastRef.current = now;
     const tau = Math.max(smoothingRef.current, 1) / 1000;

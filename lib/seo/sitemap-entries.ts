@@ -32,8 +32,8 @@ export type BuildPublicSitemapEntriesInput = {
   products: SitemapSlugDoc[];
   services: SitemapSlugDoc[];
   caseStudies: SitemapSlugDoc[];
-  /** Vercel deployment env; preview/development always fail-closed. */
-  vercelEnv?: string | null;
+  /** Deployment env (`APP_ENV`); staging/preview/development always fail-closed. */
+  appEnv?: string | null;
 };
 
 export function isSitemapIndexable(doc: { seo?: SitemapSeo }): boolean {
@@ -74,7 +74,7 @@ export function buildPublicSitemapEntries(
   input: BuildPublicSitemapEntriesInput
 ): MetadataRoute.Sitemap {
   if (
-    !isCrawlableProduction(normalizeSiteUrl(input.siteUrl), input.vercelEnv)
+    !isCrawlableProduction(normalizeSiteUrl(input.siteUrl), input.appEnv)
   ) {
     return [];
   }

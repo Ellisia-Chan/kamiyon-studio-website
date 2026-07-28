@@ -36,7 +36,7 @@
 .scroll-stack-card {
   position: relative;
   transform-origin: top center;
-  will-change: transform, filter;
+  will-change: transform;
   backface-visibility: hidden;
   /* Flatten — avoid preserve-3d / perspective z-fighting between stacked cards */
   transform-style: flat;
@@ -69,6 +69,5 @@
   .scroll-stack-card {
     will-change: auto;
     transform: none !important;
-    filter: none !important;
   }
 }

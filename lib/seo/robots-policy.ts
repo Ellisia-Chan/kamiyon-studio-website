@@ -6,19 +6,19 @@ import {
   PRODUCTION_CANONICAL_ORIGIN,
 } from "./site-url";
 
-const PRODUCTION_DISALLOW = ["/admin", "/admin/", "/api/"] as const;
+const PRODUCTION_DISALLOW = ["/admin", "/admin/", "/api/", "/studio", "/studio/"] as const;
 
 /**
  * Security-first robots policy:
- * - Crawlable production (canonical SITE_URL + production/unset VERCEL_ENV):
+ * - Crawlable production (canonical SITE_URL + production/unset APP_ENV):
  *   allow public pages; never allow /admin or /api/
- * - Preview/dev Vercel envs or any non-canonical host: disallow all; no sitemap ad
+ * - Staging/preview/dev APP_ENV or any non-canonical host: disallow all; no sitemap ad
  */
 export function buildRobotsPolicy(
   siteUrl: string,
-  vercelEnv?: string | null
+  appEnv?: string | null
 ): MetadataRoute.Robots {
-  if (!isCrawlableProduction(siteUrl, vercelEnv)) {
+  if (!isCrawlableProduction(siteUrl, appEnv)) {
     return {
       rules: {
         userAgent: "*",

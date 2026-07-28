@@ -29,6 +29,7 @@ export function ProjectsBento({ caseStudies }: ProjectsBentoProps) {
   return (
     <section
       id="home-projects"
+      data-nav-theme="light"
       className="scroll-mt-4 bg-[var(--bg-primary)] py-16 md:py-24"
     >
       <Container>
@@ -42,7 +43,7 @@ export function ProjectsBento({ caseStudies }: ProjectsBentoProps) {
             <WordPullUp
               as="h2"
               words="Recent Projects"
-              className="mt-3 text-2xl md:text-3xl"
+              className="mt-3"
             />
           </div>
           <AnimatedSection as="div" delay={0.08}>

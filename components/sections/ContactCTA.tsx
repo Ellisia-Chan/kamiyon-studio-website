@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
+import { SameRouteLink } from "@/components/ui/SameRouteLink";
 import type { HomeCtaBanner } from "@/lib/cms/types";
 
 type ContactCTAProps = {
@@ -21,12 +21,12 @@ export function ContactCTA({ ctaBanner }: ContactCTAProps) {
           <Button href={ctaBanner.ctaHref} variant="primary">
             {ctaBanner.ctaLabel}
           </Button>
-          <Link
+          <SameRouteLink
             href="/portfolio"
             className="text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-sakura-ink focus-visible:outline-offset-2"
           >
             View our work
-          </Link>
+          </SameRouteLink>
         </div>
       </Container>
     </section>

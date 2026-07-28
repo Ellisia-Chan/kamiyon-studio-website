@@ -12,27 +12,28 @@
    Only confirmed hex values are set. TBD brand colors have comments only.
    ----------------------------------------------------------------------- */
 @theme {
-  --color-sakura: #f97695;
+  --color-primary: #ff7998;
+  --color-secondary: #e9c080;
+  --color-black: #201013;
+  --color-white: #f8f8f8;
 
-  /* Phase 9: extracted directly from the color swatches in
-     docs/assets/brand-kit.png (do not invent — see ui-context.md §Colors). */
-  --color-ivory: #f8f8f8;
-  --color-charcoal: #201013;
-  --color-gold: #e9c080;
+  /* Alias — legacy sakura token name maps to locked primary */
+  --color-sakura: var(--color-primary);
 
-  /* TODO(TBD): Deep Indigo — brand-kit.png's swatch grid only contains 4
-     color chips (ivory/charcoal/pink/gold above) and none reads as a
-     blue-violet "indigo" (the darkest chip, #201013, is a near-neutral
-     dark charcoal, not indigo — assigned to --color-charcoal instead).
-     Still not documented anywhere in docs/. Do not invent; assign to
-     --color-indigo and --accent-dark once a real swatch is confirmed. */
+  --color-ivory: var(--color-white);
+  --color-charcoal: var(--color-black);
+  --color-gold: var(--color-secondary);
 
-  /* Phase 9 (WCAG AA): --color-sakura (#f97695) is ~2.6:1 against white/ivory —
-     fails AA for both text (4.5:1) and non-text UI (3:1). --color-sakura-ink is
-     the same hue/saturation darkened to ~5.2:1, for use as text/icon foreground
-     on light surfaces. Raw --color-sakura stays reserved for fills/backgrounds
-     (paired with --text-on-accent) and large brand marks. */
-  --color-sakura-ink: #c23a5e;
+  /* WCAG AA ink for text/icons on light backgrounds (~5:1 vs white) */
+  --color-sakura-ink: #c24a66;
+  --color-primary-ink: var(--color-sakura-ink);
+
+  /* shadcn-compat utilities used by cinematic footer (map to Kamiyon tokens) */
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
+  --color-muted-foreground: var(--text-muted);
+  --color-border: var(--border-default);
+  --color-destructive: var(--color-sakura-ink);
 
   /* ---- Shadow scale — 3 levels, max 15% opacity (Part 6) -------------- */
   --shadow-sm: 0 1px 4px rgba(26, 26, 26, 0.08);
@@ -52,12 +53,12 @@
 }
 
 /* -----------------------------------------------------------------------
-   FONTS — @theme inline references next/font CSS vars injected on <html>
-   by app/layout.tsx.  font-sans → Poppins, font-display → Montserrat.
+   FONTS — Geologica (display/UI) + Montserrat (body)
    ----------------------------------------------------------------------- */
 @theme inline {
-  --font-sans:    var(--font-poppins);
-  --font-display: var(--font-montserrat);
+  --font-sans:    var(--font-geologica);
+  --font-display: var(--font-geologica);
+  --font-body:    var(--font-montserrat);
 }
 
 /* -----------------------------------------------------------------------
@@ -92,7 +93,7 @@
   /* TODO(TBD): --accent-dark → var(--color-indigo) once hex confirmed */
 
   /* -- Borders ----------------------------------------------------------- */
-  --border-default: rgba(26, 26, 26, 0.12);
+  --border-default: rgba(255, 121, 152, 0.22);
 
   /* -- Type scale — desktop reference values (Part 6) --------------------
      xs = caption/small  sm = nav/small  base = body  lg = body-large
@@ -107,6 +108,13 @@
   --font-size-3xl:  2.5rem;   /*  40px */
   --font-size-4xl:  3rem;     /*  48px */
   --font-size-hero: 4rem;     /*  64px */
+
+  /* shadcn-compat CSS vars for cinematic footer color-mix() */
+  --foreground: var(--text-primary);
+  --background: var(--bg-primary);
+  --destructive: var(--color-sakura-ink);
+  --border: var(--border-default);
+  --muted-foreground: var(--text-muted);
 }
 
 /* -----------------------------------------------------------------------
@@ -146,6 +154,17 @@ body {
   }
 }
 
+@keyframes hero-scroll-helper-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -155,4 +174,237 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* -----------------------------------------------------------------------
+   CINEMATIC FOOTER — curtain-reveal site footer
+   ----------------------------------------------------------------------- */
+.cinematic-footer-wrapper {
+  font-family: var(--font-display), var(--font-body), sans-serif;
+  -webkit-font-smoothing: antialiased;
+
+  --pill-bg-1: color-mix(in oklch, var(--foreground) 3%, transparent);
+  --pill-bg-2: color-mix(in oklch, var(--foreground) 1%, transparent);
+  --pill-shadow: color-mix(in oklch, var(--background) 50%, transparent);
+  --pill-highlight: color-mix(in oklch, var(--foreground) 10%, transparent);
+  --pill-inset-shadow: color-mix(in oklch, var(--background) 80%, transparent);
+  --pill-border: color-mix(in oklch, var(--foreground) 8%, transparent);
+
+  --pill-bg-1-hover: color-mix(in oklch, var(--foreground) 8%, transparent);
+  --pill-bg-2-hover: color-mix(in oklch, var(--foreground) 2%, transparent);
+  --pill-border-hover: color-mix(in oklch, var(--foreground) 20%, transparent);
+  --pill-shadow-hover: color-mix(in oklch, var(--background) 70%, transparent);
+  --pill-highlight-hover: color-mix(in oklch, var(--foreground) 20%, transparent);
+}
+
+@keyframes footer-breathe {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 1;
+  }
+}
+
+@keyframes footer-scroll-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes footer-heartbeat {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(
+      0 0 5px color-mix(in oklch, var(--destructive) 50%, transparent)
+    );
+  }
+  15%,
+  45% {
+    transform: scale(1.2);
+    filter: drop-shadow(
+      0 0 10px color-mix(in oklch, var(--destructive) 80%, transparent)
+    );
+  }
+  30% {
+    transform: scale(1);
+  }
+}
+
+.animate-footer-breathe {
+  animation: footer-breathe 8s ease-in-out infinite alternate;
+}
+
+.animate-footer-scroll-marquee {
+  animation: footer-scroll-marquee 40s linear infinite;
+}
+
+.animate-footer-heartbeat {
+  animation: footer-heartbeat 2s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+}
+
+.footer-bg-grid {
+  background-size: 60px 60px;
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in oklch, var(--foreground) 3%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in oklch, var(--foreground) 3%, transparent) 1px,
+      transparent 1px
+    );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black 30%,
+    black 70%,
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black 30%,
+    black 70%,
+    transparent
+  );
+}
+
+/* Site-wide cross-hatch — same pattern as footer, much lower contrast. */
+.site-bg-grid {
+  background-size: 60px 60px;
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in oklch, var(--foreground) 1%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in oklch, var(--foreground) 1%, transparent) 1px,
+      transparent 1px
+    );
+}
+
+.footer-aurora {
+  background: radial-gradient(
+    circle at 50% 50%,
+    color-mix(in oklch, var(--color-primary) 15%, transparent) 0%,
+    color-mix(in oklch, var(--color-secondary) 15%, transparent) 40%,
+    transparent 70%
+  );
+}
+
+.footer-glass-pill {
+  background: linear-gradient(
+    145deg,
+    var(--pill-bg-1) 0%,
+    var(--pill-bg-2) 100%
+  );
+  box-shadow:
+    0 10px 30px -10px var(--pill-shadow),
+    inset 0 1px 1px var(--pill-highlight),
+    inset 0 -1px 2px var(--pill-inset-shadow);
+  border: 1px solid var(--pill-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.footer-glass-pill:hover {
+  background: linear-gradient(
+    145deg,
+    var(--pill-bg-1-hover) 0%,
+    var(--pill-bg-2-hover) 100%
+  );
+  border-color: var(--pill-border-hover);
+  box-shadow:
+    0 20px 40px -10px var(--pill-shadow-hover),
+    inset 0 1px 1px var(--pill-highlight-hover);
+  color: var(--foreground);
+}
+
+/* Borderless text link — color transition + underline on hover (WS-B). */
+.footer-text-link {
+  color: var(--muted-foreground);
+  text-decoration: none;
+  text-underline-offset: 0.2em;
+  transition:
+    color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    text-decoration-color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.footer-text-link:hover {
+  color: var(--foreground);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklch, var(--foreground) 45%, transparent);
+}
+
+/* Icon-only social control — 44px min touch target, hover color/scale (WS-B). */
+.footer-social-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  color: var(--muted-foreground);
+  transition:
+    color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.footer-social-icon:hover {
+  color: var(--foreground);
+  transform: scale(1.08);
+}
+
+.footer-giant-bg-text {
+  font-size: 26vw;
+  line-height: 0.75;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  color: transparent;
+  -webkit-text-stroke: 1px
+    color-mix(in oklch, var(--foreground) 5%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklch, var(--foreground) 10%, transparent) 0%,
+    transparent 60%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.footer-text-glow {
+  background: linear-gradient(
+    180deg,
+    var(--foreground) 0%,
+    color-mix(in oklch, var(--foreground) 40%, transparent) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(
+    0px 0px 20px color-mix(in oklch, var(--foreground) 15%, transparent)
+  );
+}
+
+/* WordPullUp wraps each word — re-apply clip so the glow renders on spans. */
+.footer-text-glow .word-pull-up-word {
+  background: linear-gradient(
+    180deg,
+    var(--foreground) 0%,
+    color-mix(in oklch, var(--foreground) 40%, transparent) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

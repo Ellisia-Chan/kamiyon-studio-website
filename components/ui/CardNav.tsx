@@ -392,5 +392,3 @@ export function CardNav({
     </div>
   );
 }
-
-export default CardNav;

@@ -40,7 +40,7 @@ export function renderDefaultOgImage() {
               width: 100,
               height: 100,
               borderRadius: "50%",
-              backgroundColor: "#f97695",
+              backgroundColor: "#ff7998",
               color: "#201013",
               fontSize: 56,
               fontWeight: 700,
@@ -52,7 +52,7 @@ export function renderDefaultOgImage() {
             {SITE_NAME}
           </div>
         </div>
-        <div style={{ marginTop: 28, fontSize: 32, fontWeight: 600, color: "#f97695" }}>
+        <div style={{ marginTop: 28, fontSize: 32, fontWeight: 600, color: "#ff7998" }}>
           {SITE_MOTTO}
         </div>
       </div>

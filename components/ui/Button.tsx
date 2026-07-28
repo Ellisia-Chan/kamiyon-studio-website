@@ -1,6 +1,10 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { isExternalHref } from "@/lib/navigation/same-route-scroll";
+
+import { GlowingShadow } from "./glowing-shadow";
+
 type ButtonVariant = "primary" | "secondary" | "ghost";
 
 type ButtonBaseProps = {
@@ -34,6 +38,18 @@ const variantClasses: Record<ButtonVariant, string> = {
 const baseClasses =
   "inline-flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-button)] px-5 py-2.5 text-sm font-medium transition-[opacity,background-color,color] duration-200 motion-reduce:transition-none";
 
+function isMailOrTel(href: string): boolean {
+  return /^(mailto:|tel:)/i.test(href.trim());
+}
+
+function wrapPrimaryVariant(content: ReactNode, variant: ButtonVariant): ReactNode {
+  if (variant === "primary") {
+    return <GlowingShadow>{content}</GlowingShadow>;
+  }
+
+  return content;
+}
+
 export function Button({
   children,
   variant = "primary",
@@ -43,22 +59,41 @@ export function Button({
   const classes = `${baseClasses} ${variantClasses[variant]} ${className}`.trim();
 
   if ("href" in props && props.href) {
-    return (
+    if (isExternalHref(props.href)) {
+      const openInNewTab = !isMailOrTel(props.href);
+
+      return wrapPrimaryVariant(
+        <a
+          href={props.href}
+          className={classes}
+          {...(openInNewTab
+            ? { target: "_blank", rel: "noopener noreferrer" }
+            : {})}
+        >
+          {children}
+        </a>,
+        variant,
+      );
+    }
+
+    return wrapPrimaryVariant(
       <Link href={props.href} className={classes}>
         {children}
-      </Link>
+      </Link>,
+      variant,
     );
   }
 
   const buttonProps = props as ButtonAsButton;
 
-  return (
+  return wrapPrimaryVariant(
     <button
       type={buttonProps.type ?? "button"}
       onClick={buttonProps.onClick}
       className={classes}
     >
       {children}
-    </button>
+    </button>,
+    variant,
   );
 }

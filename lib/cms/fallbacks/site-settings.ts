@@ -1,5 +1,9 @@
 import type { SiteSettings } from "../types";
-import { PUBLIC_EMAIL, socialLinks } from "@/lib/contact/channels";
+import {
+  INTERIM_CONTACT_FORM_URL,
+  PUBLIC_EMAIL,
+  socialLinks,
+} from "@/lib/contact/channels";
 
 // Sources: docs/company/overview.md, docs/branding/messaging.md, docs/marketing/positioning.md
 // Contact URLs: operator-provided 2026-07-10 (lib/contact/channels.ts)
@@ -23,7 +27,7 @@ export const siteSettingsFallback: SiteSettings = {
     },
     {
       label: "Get in touch",
-      href: "/contact",
+      href: INTERIM_CONTACT_FORM_URL,
       variant: "secondary",
     },
   ],

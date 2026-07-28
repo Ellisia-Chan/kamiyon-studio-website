@@ -27,6 +27,3 @@ export const MOTION_STAGGER = {
 } as const;
 
 export const SCROLL_TRIGGER_START = "top 85%";
-
-/** Re-export blur tuning so callers can import from constants if preferred. */
-export { MOTION_BLUR } from "./motion-blur";

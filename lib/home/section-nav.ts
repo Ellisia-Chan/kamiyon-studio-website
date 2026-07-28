@@ -11,5 +11,3 @@ export const HOME_SECTION_NAV: readonly HomeSectionNavItem[] = [
   { id: "home-services", label: "Services" },
   { id: "home-contact", label: "Contact" },
 ] as const;
-
-export const HOME_SECTION_IDS = HOME_SECTION_NAV.map((item) => item.id);

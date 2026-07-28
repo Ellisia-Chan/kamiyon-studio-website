@@ -1,7 +1,5 @@
 "use client";
 
-import Lenis from "lenis";
-import { useLenis } from "lenis/react";
 import {
   useCallback,
   useLayoutEffect,
@@ -16,14 +14,21 @@ import "./ScrollStack.css";
 export type ScrollStackItemProps = {
   itemClassName?: string;
   children: ReactNode;
+  "data-nav-theme"?: "light" | "dark";
 };
 
 export function ScrollStackItem({
   children,
   itemClassName = "",
+  "data-nav-theme": navTheme,
 }: ScrollStackItemProps) {
   return (
-    <div className={`scroll-stack-card ${itemClassName}`.trim()}>{children}</div>
+    <div
+      className={`scroll-stack-card ${itemClassName}`.trim()}
+      data-nav-theme={navTheme}
+    >
+      {children}
+    </div>
   );
 }
 
@@ -31,7 +36,6 @@ type CardTransform = {
   translateY: number;
   scale: number;
   rotation: number;
-  blur: number;
 };
 
 export type ScrollStackProps = {
@@ -45,7 +49,6 @@ export type ScrollStackProps = {
   baseScale?: number;
   scaleDuration?: number;
   rotationAmount?: number;
-  blurAmount?: number;
   useWindowScroll?: boolean;
   onStackComplete?: () => void;
 };
@@ -74,8 +77,8 @@ export function getTransformInvariantOffsetTop(
 
 /**
  * React Bits ScrollStack (TS + CSS), adapted for Kamiyon:
- * - When `useWindowScroll`, reuses the document scroll (and site-wide Lenis)
- *   instead of creating a second root Lenis instance.
+ * - When `useWindowScroll`, uses document scroll + native listeners.
+ * - Otherwise uses the scroller element's native overflow scroll.
  * - Card queries stay scoped to this component instance.
  * - Layout offsets are cached from transform-invariant measurements so pin math
  *   stays stable while cards are translated.
@@ -91,7 +94,6 @@ export default function ScrollStack({
   baseScale = 0.85,
   scaleDuration: _scaleDuration = 0.5,
   rotationAmount = 0,
-  blurAmount = 0,
   useWindowScroll = false,
   onStackComplete,
 }: ScrollStackProps) {
@@ -99,7 +101,6 @@ export default function ScrollStack({
   const stackCompletedRef = useRef(false);
   const animationFrameRef = useRef<number | null>(null);
   const scrollRafRef = useRef<number | null>(null);
-  const lenisRef = useRef<Lenis | null>(null);
   const cardsRef = useRef<HTMLElement[]>([]);
   const cardTopsRef = useRef<number[]>([]);
   const endTopRef = useRef(0);
@@ -180,24 +181,6 @@ export default function ScrollStack({
       const scale = 1 - scaleProgress * (1 - targetScale);
       const rotation = rotationAmount ? i * rotationAmount * scaleProgress : 0;
 
-      let blur = 0;
-      if (blurAmount) {
-        let topCardIndex = 0;
-        for (let j = 0; j < cardsRef.current.length; j++) {
-          const jCardTop = cardTopsRef.current[j] ?? 0;
-          const jTriggerStart =
-            jCardTop - stackPositionPx - itemStackDistance * j;
-          if (scrollTop >= jTriggerStart) {
-            topCardIndex = j;
-          }
-        }
-
-        if (i < topCardIndex) {
-          const depthInStack = topCardIndex - i;
-          blur = Math.max(0, depthInStack * blurAmount);
-        }
-      }
-
       let translateY = 0;
       const isPinned = scrollTop >= pinStart && scrollTop <= pinEnd;
 
@@ -211,7 +194,6 @@ export default function ScrollStack({
         translateY: Math.round(translateY * 100) / 100,
         scale: Math.round(scale * 1000) / 1000,
         rotation: Math.round(rotation * 100) / 100,
-        blur: Math.round(blur * 100) / 100,
       };
 
       const lastTransform = lastTransformsRef.current.get(i);
@@ -219,16 +201,10 @@ export default function ScrollStack({
         !lastTransform ||
         Math.abs(lastTransform.translateY - newTransform.translateY) > 0.1 ||
         Math.abs(lastTransform.scale - newTransform.scale) > 0.001 ||
-        Math.abs(lastTransform.rotation - newTransform.rotation) > 0.1 ||
-        Math.abs(lastTransform.blur - newTransform.blur) > 0.1;
+        Math.abs(lastTransform.rotation - newTransform.rotation) > 0.1;
 
       if (hasChanged) {
-        const transform = `translate3d(0, ${newTransform.translateY}px, 0) scale(${newTransform.scale}) rotate(${newTransform.rotation}deg)`;
-        const filter = newTransform.blur > 0 ? `blur(${newTransform.blur}px)` : "";
-
-        card.style.transform = transform;
-        card.style.filter = filter;
-
+        card.style.transform = `translate3d(0, ${newTransform.translateY}px, 0) scale(${newTransform.scale}) rotate(${newTransform.rotation}deg)`;
         lastTransformsRef.current.set(i, newTransform);
       }
 
@@ -251,7 +227,6 @@ export default function ScrollStack({
     scaleEndPosition,
     baseScale,
     rotationAmount,
-    blurAmount,
     onStackComplete,
     calculateProgress,
     parsePercentage,
@@ -270,49 +245,6 @@ export default function ScrollStack({
     measureLayoutPositions();
     updateCardTransforms();
   }, [measureLayoutPositions, updateCardTransforms]);
-
-  // Keep transforms in sync with site-wide ReactLenis (SmoothScrollProvider).
-  useLenis(
-    () => {
-      if (useWindowScroll) {
-        handleScroll();
-      }
-    },
-    [useWindowScroll, handleScroll]
-  );
-
-  const setupContainerLenis = useCallback(() => {
-    const scroller = scrollerRef.current;
-    if (!scroller) return;
-
-    const content = scroller.querySelector(".scroll-stack-inner");
-    if (!(content instanceof HTMLElement)) return;
-
-    const lenis = new Lenis({
-      wrapper: scroller,
-      content,
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smoothWheel: true,
-      touchMultiplier: 2,
-      infinite: false,
-      gestureOrientation: "vertical",
-      wheelMultiplier: 1,
-      lerp: 0.1,
-      syncTouch: true,
-      syncTouchLerp: 0.075,
-    });
-
-    lenis.on("scroll", handleScroll);
-
-    const raf = (time: number) => {
-      lenis.raf(time);
-      animationFrameRef.current = requestAnimationFrame(raf);
-    };
-    animationFrameRef.current = requestAnimationFrame(raf);
-
-    lenisRef.current = lenis;
-  }, [handleScroll]);
 
   useLayoutEffect(() => {
     const scroller = scrollerRef.current;
@@ -333,7 +265,7 @@ export default function ScrollStack({
       }
       // Later cards paint above earlier ones — prevents bleed/z-fight while stacking.
       card.style.zIndex = String(i + 1);
-      card.style.willChange = "transform, filter";
+      card.style.willChange = "transform";
       card.style.transformOrigin = "top center";
       card.style.backfaceVisibility = "hidden";
       card.style.transform = "translate3d(0, 0, 0)";
@@ -353,7 +285,6 @@ export default function ScrollStack({
     }
 
     if (useWindowScroll) {
-      // Site already runs document Lenis via SmoothScrollProvider — only listen.
       window.addEventListener("scroll", handleScroll, { passive: true });
       window.addEventListener("resize", handleResize);
       updateCardTransforms();
@@ -373,11 +304,12 @@ export default function ScrollStack({
       };
     }
 
-    setupContainerLenis();
+    scroller.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", handleResize);
     updateCardTransforms();
 
     return () => {
+      scroller.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleResize);
       if (scrollRafRef.current !== null) {
         cancelAnimationFrame(scrollRafRef.current);
@@ -385,10 +317,6 @@ export default function ScrollStack({
       }
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
-      }
-      if (lenisRef.current) {
-        lenisRef.current.destroy();
-        lenisRef.current = null;
       }
       stackCompletedRef.current = false;
       cardsRef.current = [];
@@ -402,7 +330,6 @@ export default function ScrollStack({
     handleScroll,
     handleResize,
     measureLayoutPositions,
-    setupContainerLenis,
     updateCardTransforms,
   ]);
 

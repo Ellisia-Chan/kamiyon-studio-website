@@ -1,18 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
-
-vi.mock("lenis", () => {
-  class MockLenis {
-    on = vi.fn();
-    raf = vi.fn();
-    destroy = vi.fn();
-  }
-  return { default: MockLenis };
-});
-
-vi.mock("lenis/react", () => ({
-  useLenis: () => undefined,
-}));
+import { describe, expect, it } from "vitest";
 
 import ScrollStack, {
   getTransformInvariantOffsetTop,
@@ -56,7 +43,7 @@ describe("ScrollStack", () => {
         <ScrollStackItem>
           <p>Card Two</p>
         </ScrollStackItem>
-      </ScrollStack>
+      </ScrollStack>,
     );
 
     expect(screen.getByRole("heading", { name: "Card One" })).toBeInTheDocument();
@@ -67,7 +54,7 @@ describe("ScrollStack", () => {
     const { container } = render(
       <ScrollStack useWindowScroll className="extra">
         <ScrollStackItem>Item</ScrollStackItem>
-      </ScrollStack>
+      </ScrollStack>,
     );
 
     const scroller = container.querySelector(".scroll-stack-scroller");
@@ -79,7 +66,7 @@ describe("ScrollStack", () => {
     const { container } = render(
       <ScrollStack useWindowScroll>
         <ScrollStackItem>Only</ScrollStackItem>
-      </ScrollStack>
+      </ScrollStack>,
     );
 
     expect(container.querySelector(".scroll-stack-end")).toBeInTheDocument();
@@ -91,7 +78,7 @@ describe("ScrollStack", () => {
         <ScrollStackItem>First</ScrollStackItem>
         <ScrollStackItem>Second</ScrollStackItem>
         <ScrollStackItem>Third</ScrollStackItem>
-      </ScrollStack>
+      </ScrollStack>,
     );
 
     const cards = container.querySelectorAll(".scroll-stack-card");

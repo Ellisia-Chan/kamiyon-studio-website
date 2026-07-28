@@ -1,4 +1,5 @@
 import type { HomePage } from "../types";
+import { INTERIM_CONTACT_FORM_URL } from "@/lib/contact/channels";
 
 // Sources: docs/branding/messaging.md, docs/company/mission-vision.md, docs/company/overview.md
 export const homePageFallback: HomePage = {
@@ -51,7 +52,7 @@ export const homePageFallback: HomePage = {
       title: "Let’s build something meaningful.",
       body: "Tell us what you want to create, teach, or explore. We will help shape the right interactive experience around it.",
       ctaLabel: "Get in touch",
-      ctaHref: "/contact",
+      ctaHref: INTERIM_CONTACT_FORM_URL,
     },
   ],
   seo: {

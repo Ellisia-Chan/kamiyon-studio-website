@@ -150,7 +150,7 @@ If requirements are ambiguous, add an open question to `progress-tracker.md` bef
 ## Handling Missing Requirements
 
 - Do not invent product behavior not defined in context or docs
-- Do not invent hex colors — Sakura `#f97695` only; others TBD
+- Do not invent hex colors — use locked website tokens in essential context §8 (`#FF7998`, `#E9C080`, `#201013`, `#F8F8F8`)
 - Do not invent social URLs or email — TBD in siteSettings
 - Resolve conflicts by doc priority (see canon.md); flag persistent conflicts for human review
 - **Known conflict:** README motto "Play. Question. Create." vs company docs "Create. Play. Inspire." — use **Create. Play. Inspire.** on website
@@ -176,12 +176,12 @@ Always update after implementation:
 
 Enforce on every implementation pass:
 
-- **No contact forms** — Facebook, LinkedIn, mailto only
-- **No auth** — no Clerk, sessions, or admin routes in app
+- **Contact** — Interim: Google Form CTA + Facebook/LinkedIn/mailto; no half-built in-app form until T8 Resend. Do not claim an in-app mail pipeline exists.
+- **No auth** — no Clerk, sessions, or admin routes in the marketing app (Studio auth is Sanity-hosted)
 - **No hardcoded copy** — CMS or typed fallbacks
-- **Seven sections** — Home, About, Services, Products, Portfolio, Community, Contact
+- **Seven sections** — Home, About, Services, Products, Portfolio, Community, Contact (+ Blog route when T9 lands)
 - **Headless CMS** — all page content externalized
-- **No blog/careers/press kit** in v1 (Vision items)
+- **No careers/press kit** in v1 (Vision items); `/news` deferred
 
 ---
 

@@ -2,9 +2,9 @@ import type { CaseStudy } from "@/lib/cms/types";
 
 export const BENTO_LARGE_SLOT_COUNT = 2;
 export const BENTO_SMALL_SLOT_COUNT = 6;
-export const BENTO_TOTAL_SLOTS = BENTO_LARGE_SLOT_COUNT + BENTO_SMALL_SLOT_COUNT;
+const BENTO_TOTAL_SLOTS = BENTO_LARGE_SLOT_COUNT + BENTO_SMALL_SLOT_COUNT;
 
-export type BentoSlot = CaseStudy | null;
+type BentoSlot = CaseStudy | null;
 
 export type BentoLayout = {
   large: BentoSlot[];

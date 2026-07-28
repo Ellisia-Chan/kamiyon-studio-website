@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/Button";
 import type { Service } from "@/lib/cms/types";
+import { CONTACT_CTA } from "@/lib/config/navigation";
 
 type ServiceSidebarProps = {
   service: Service;
@@ -44,7 +45,7 @@ export function ServiceSidebar({ service }: ServiceSidebarProps) {
         </div>
       ) : null}
 
-      <Button href="/contact" variant="primary" className="mt-6 w-full">
+      <Button href={CONTACT_CTA.href} variant="primary" className="mt-6 w-full">
         Discuss this service
       </Button>
     </aside>

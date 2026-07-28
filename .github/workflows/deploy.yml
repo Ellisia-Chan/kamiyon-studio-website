@@ -1,0 +1,104 @@
+# Deploy OpenNext Worker to Cloudflare.
+#
+# Required GitHub repository secrets:
+#   CLOUDFLARE_API_TOKEN  — API token with Workers Scripts Edit (+ R2 if needed)
+#   CLOUDFLARE_ACCOUNT_ID — Cloudflare account ID
+#
+# Optional GitHub Actions variables / secrets for build-time Next.js env
+# (see context/deploy-runbook.md): APP_ENV, NEXT_PUBLIC_SITE_URL,
+# NEXT_PUBLIC_R2_PUBLIC_BASE_URL, NEXT_PUBLIC_SANITY_*, etc.
+# `NEXT_PUBLIC_*` is inlined at build time and robots.txt/sitemap.xml are
+# prerendered, so each has a literal default: an unset repo variable would
+# otherwise bake `http://localhost:3000` and ship `Disallow: /` to production.
+#
+# Triggers:
+#   push → staging branch → pnpm deploy:staging (wrangler --env staging)
+#   push → main branch    → pnpm deploy:prod    (production)
+#
+# Track A owns package scripts:
+#   deploy:staging / deploy:prod = opennextjs-cloudflare build + deploy
+
+name: Deploy
+
+on:
+  push:
+    branches:
+      - staging
+      - main
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Deploy target (manual override)
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+
+concurrency:
+  group: cloudflare-deploy-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy (${{ github.event_name == 'workflow_dispatch' && inputs.target || (github.ref_name == 'main' && 'production' || 'staging') }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Resolve deploy target
+        id: target
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "env=${{ inputs.target }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.ref_name }}" = "main" ]; then
+            echo "env=production" >> "$GITHUB_OUTPUT"
+          else
+            echo "env=staging" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy staging
+        if: steps.target.outputs.env == 'staging'
+        run: pnpm run deploy:staging
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          APP_ENV: ${{ vars.APP_ENV_STAGING || 'staging' }}
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL_STAGING || 'https://kamiyon-studio-website-staging.limosnerosherwin.workers.dev' }}
+          NEXT_PUBLIC_R2_PUBLIC_BASE_URL: ${{ vars.NEXT_PUBLIC_R2_PUBLIC_BASE_URL_STAGING || 'https://media-staging.kamiyonstudio.com' }}
+          NEXT_PUBLIC_SANITY_PROJECT_ID: ${{ vars.NEXT_PUBLIC_SANITY_PROJECT_ID || 'c6ej1xoj' }}
+          NEXT_PUBLIC_SANITY_DATASET: ${{ vars.NEXT_PUBLIC_SANITY_DATASET || 'kamiyon' }}
+          NEXT_PUBLIC_CF_WEB_ANALYTICS_TOKEN: ${{ vars.NEXT_PUBLIC_CF_WEB_ANALYTICS_TOKEN_STAGING }}
+
+      - name: Deploy production
+        if: steps.target.outputs.env == 'production'
+        run: pnpm run deploy:prod
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          APP_ENV: ${{ vars.APP_ENV_PRODUCTION || 'production' }}
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL_PRODUCTION || 'https://kamiyonstudio.com' }}
+          NEXT_PUBLIC_R2_PUBLIC_BASE_URL: ${{ vars.NEXT_PUBLIC_R2_PUBLIC_BASE_URL_PRODUCTION || 'https://media.kamiyonstudio.com' }}
+          NEXT_PUBLIC_SANITY_PROJECT_ID: ${{ vars.NEXT_PUBLIC_SANITY_PROJECT_ID || 'c6ej1xoj' }}
+          NEXT_PUBLIC_SANITY_DATASET: ${{ vars.NEXT_PUBLIC_SANITY_DATASET || 'kamiyon' }}
+          NEXT_PUBLIC_CF_WEB_ANALYTICS_TOKEN: ${{ vars.NEXT_PUBLIC_CF_WEB_ANALYTICS_TOKEN_PRODUCTION }}

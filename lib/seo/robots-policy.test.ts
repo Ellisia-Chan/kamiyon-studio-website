@@ -10,21 +10,21 @@ describe("buildRobotsPolicy", () => {
       rules: {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin", "/admin/", "/api/"],
+        disallow: ["/admin", "/admin/", "/api/", "/studio", "/studio/"],
       },
       sitemap: "https://kamiyonstudio.com/sitemap.xml",
       host: "kamiyonstudio.com",
     });
   });
 
-  it("allows crawl when VERCEL_ENV is unset and SITE_URL is canonical (local)", () => {
+  it("allows crawl when APP_ENV is unset and SITE_URL is canonical (local)", () => {
     const policy = buildRobotsPolicy("https://kamiyonstudio.com");
 
     expect(policy).toEqual({
       rules: {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin", "/admin/", "/api/"],
+        disallow: ["/admin", "/admin/", "/api/", "/studio", "/studio/"],
       },
       sitemap: "https://kamiyonstudio.com/sitemap.xml",
       host: "kamiyonstudio.com",
@@ -46,7 +46,7 @@ describe("buildRobotsPolicy", () => {
     expect(policy).not.toHaveProperty("sitemap");
   });
 
-  it("disallows all for development VERCEL_ENV even with canonical SITE_URL", () => {
+  it("disallows all for development APP_ENV even with canonical SITE_URL", () => {
     const policy = buildRobotsPolicy(
       "https://kamiyonstudio.com",
       "development"

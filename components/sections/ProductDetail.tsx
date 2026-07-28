@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
+import { CONTACT_CTA } from "@/lib/config/navigation";
 import { getDevelopmentStatusLabel } from "@/lib/products/development-status";
 import type { Product } from "@/lib/cms/types";
 import { ProductMedia } from "./ProductMedia";
@@ -95,7 +96,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
               </div>
             ) : null}
 
-            <Button href="/contact" variant="primary" className="mt-6 w-full">
+            <Button href={CONTACT_CTA.href} variant="primary" className="mt-6 w-full">
               Interested in this project?
             </Button>
           </aside>

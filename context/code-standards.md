@@ -39,9 +39,9 @@
 
 ### Client and queries
 
-- Single CMS client instance in `lib/cms/client.ts`
 - One query function per page/collection in `lib/cms/queries.ts`
 - Queries return typed results or `null` — never throw for missing content (fall back instead)
+- Sanity GROQ getters live in `lib/cms/queries.ts`; pages use `resolveWithFallback()` with typed fallbacks when CMS returns `null`
 
 ### Types
 
@@ -73,10 +73,13 @@ const page = (await getAboutPage()) ?? aboutPageFallback;
 
 ### Environment variables
 
-- `DATABASE_URL`, `PAYLOAD_SECRET` in `.env.local` (required for `/admin` and live CMS fetches)
+Target (Sanity + Cloudflare): see [`WEBSITE-ESSENTIAL-CONTEXT.md`](./WEBSITE-ESSENTIAL-CONTEXT.md) §16.
+
 - `NEXT_PUBLIC_SITE_URL` for canonical/OG URLs
-- Never commit secrets; document required vars in README
-- Validate required env vars at client initialization with clear error messages; fall back to typed content when unset
+- `NEXT_PUBLIC_SANITY_PROJECT_ID`, `NEXT_PUBLIC_SANITY_DATASET` (Phase B+)
+- `R2_*`, `RESEND_API_KEY`, `SANITY_REVALIDATE_SECRET` (Phase E+)
+- Never commit secrets; document required vars in `.env.example` when added
+- Missing CMS env: fall back to typed content — site must not white-screen
 
 ---
 
@@ -88,7 +91,6 @@ const page = (await getAboutPage()) ?? aboutPageFallback;
 - Prefer composition over deep selector chains
 - Mobile-first responsive classes
 - Honor `prefers-reduced-motion`
-- Scroll reveals use soft motion blur by default (`AnimatedSection` / `useFadeIn`); opt out with `motionBlur={false}`
 
 ---
 
@@ -196,5 +198,5 @@ Do not modify unless explicitly instructed:
 
 - Vision labels in UI when rendering vision-only content
 - Motto on site: **Create. Play. Inspire.**
-- Contact v1: external links only — reject PRs adding form handlers or auth middleware
+- Contact: interim Google Form CTA + external links; Resend in-app form is T8 — do not half-implement Resend before WS5
 - Product `developmentStatus`: default `tbd` — never hardcode `released` without canon proof

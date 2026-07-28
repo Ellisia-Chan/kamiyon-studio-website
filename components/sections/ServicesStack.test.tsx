@@ -1,19 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("lenis", () => {
-  class MockLenis {
-    on = vi.fn();
-    raf = vi.fn();
-    destroy = vi.fn();
-  }
-  return { default: MockLenis };
-});
-
-vi.mock("lenis/react", () => ({
-  useLenis: () => undefined,
-}));
-
 vi.mock("@/components/ui/WordPullUp", () => ({
   WordPullUp: ({
     words,
